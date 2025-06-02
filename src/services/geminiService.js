@@ -68,26 +68,29 @@ Guidelines:
   }
 
   /**
-   * Step 3: Rank products based on query and user segment
+   * Step 3: Rank products based on query and user segment, with match reasons
    */
   async rankProducts(products, parsedQuery, limit = 4) {
     if (!products || products.length === 0) {
       return [];
     }
 
-    // If price sensitivity is the main factor, sort by price first
+    // If price sensitivity is the main factor, sort by price first with simple reasons
     if (parsedQuery.price_sensitivity === 'budget' || parsedQuery.user_segment === USER_SEGMENTS.VALUE_HUNTERS) {
       products.sort((a, b) => {
         const priceA = parseFloat(a.price_sale) || parseFloat(a.price_mrp) || 0;
         const priceB = parseFloat(b.price_sale) || parseFloat(b.price_mrp) || 0;
         return priceA - priceB;
       });
-      return products.slice(0, limit);
+      return products.slice(0, limit).map((product, index) => ({
+        ...product,
+        match_reason: index === 0 ? 'Most budget-friendly option with good value' : 'Good value for money'
+      }));
     }
 
-    // For other segments, use AI ranking
+    // For other segments, use AI ranking with detailed reasons
     const prompt = `
-You are a skincare expert. Rank the following products based on the user query and segment.
+You are a skincare expert. Rank the following products based on the user query and provide specific reasons why each product is suitable for this user.
 
 User Query Analysis:
 - Intent: ${parsedQuery.intent}
@@ -107,16 +110,31 @@ ${index + 1}. ${product.brand_name} ${product.product_name}
    Benefits: ${this.extractKeyBenefits(product)}
 `).join('\n')}
 
-Rank these products from most relevant to least relevant for this user.
-Return ONLY a JSON array of product indices (1-based) in order of relevance.
-Example: [3, 1, 4, 2]
+Rank these products from most relevant to least relevant for this user and provide specific match reasons.
 
-Consider:
-- Relevance to user's concern and intent
-- Ingredient match (especially for Ingredient-Conscious users)
-- Price appropriateness for user segment
-- Product ratings and reviews
-- Brand reputation for the user segment
+Return ONLY a JSON array with this structure:
+[
+  {
+    "productIndex": 3,
+    "matchReason": "Specific reason why this product is perfect for the user's needs"
+  },
+  {
+    "productIndex": 1,
+    "matchReason": "Specific reason for this product's relevance"
+  }
+]
+
+For each product, provide a concise (50-100 characters) reason that explains:
+- How it addresses their specific concern/skin type
+- Why specific ingredients are beneficial for them
+- Why it's ranked at this position
+- What makes it suitable for their user segment
+
+Example reasons:
+- "SPF 50+ protection perfect for oily, sensitive skin with zinc oxide"
+- "Contains niacinamide for oil control and ceramides for barrier repair"
+- "Gentle formula ideal for sensitive skin with no harsh actives"
+- "Premium retinol serum with bakuchiol for anti-aging benefits"
 `;
 
     try {
@@ -124,29 +142,46 @@ Consider:
       const response = result.response.text();
       
       // Extract JSON array from response
-      const jsonMatch = response.match(/\[[\d,\s]+\]/);
+      const jsonMatch = response.match(/\[[\s\S]*?\]/);
       if (!jsonMatch) {
-        // Fallback: return products sorted by rating
+        // Fallback: return products sorted by rating with generic reasons
         return products
           .sort((a, b) => (parseFloat(b.rating_avg) || 0) - (parseFloat(a.rating_avg) || 0))
-          .slice(0, limit);
+          .slice(0, limit)
+          .map((product, index) => ({
+            ...product,
+            match_reason: index === 0 ? 'Top-rated option for your needs' : 'Highly rated and relevant'
+          }));
       }
       
-      const ranking = JSON.parse(jsonMatch[0]);
+      const rankingWithReasons = JSON.parse(jsonMatch[0]);
       
-      // Reorder products based on AI ranking
-      const rankedProducts = ranking
-        .map(index => products[index - 1])
+      // Reorder products based on AI ranking and add match reasons
+      const rankedProducts = rankingWithReasons
+        .map(item => {
+          const product = products[item.productIndex - 1];
+          if (product) {
+            return {
+              ...product,
+              match_reason: item.matchReason
+            };
+          }
+          return null;
+        })
         .filter(product => product) // Remove any undefined products
         .slice(0, limit);
       
       return rankedProducts;
     } catch (error) {
       console.error('Error ranking products with Gemini:', error);
-      // Fallback: return products sorted by rating
+      // Fallback: return products sorted by rating with generic reasons
       return products
         .sort((a, b) => (parseFloat(b.rating_avg) || 0) - (parseFloat(a.rating_avg) || 0))
-        .slice(0, limit);
+        .slice(0, limit)
+        .map((product, index) => ({
+          ...product,
+          match_reason: index === 0 ? 'Top-rated option for your needs' : 'Highly rated and relevant'
+        }));
     }
   }
 

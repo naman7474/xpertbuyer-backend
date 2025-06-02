@@ -10,8 +10,8 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Initialize models
 const models = {
-  flash: genAI.getGenerativeModel({ model: "gemini-1.5-flash" }),
-  pro: genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
+  flash: genAI.getGenerativeModel({ model: "gemini-2.0-flash" }),
+  pro: genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 };
 
 module.exports = { genAI, models }; 

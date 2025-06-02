@@ -63,6 +63,8 @@ app.get('/', (req, res) => {
       search: 'POST /api/search',
       productDetails: 'GET /api/products/:productId',
       compare: 'POST /api/compare',
+      productVideos: 'GET /api/products/:productId/videos',
+      videosSummary: 'GET /api/videos/products-summary?productIds=id1,id2,id3',
       health: 'GET /api/health'
     }
   });
