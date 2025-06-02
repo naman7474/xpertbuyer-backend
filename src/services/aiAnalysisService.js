@@ -1,62 +1,92 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const supabase = require('../config/database');
+const AIAnalysisCacheService = require('./aiAnalysisCacheService');
 
 class AIAnalysisService {
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    this.cacheService = new AIAnalysisCacheService();
   }
 
   /**
-   * Main function to trigger AI analysis for any profile update
+   * Main function to trigger AI analysis for any profile update with caching
    */
   async analyzeProfileData(userId, analysisType, profileData, triggerSource = 'profile_update') {
     try {
       console.log(`🔍 Starting AI analysis for user ${userId}, type: ${analysisType}`);
       
-      // Create analysis session
-      const session = await this.createAnalysisSession(userId, 'profile_update', `${analysisType}_profile_update`);
-      
-      // Create analysis trigger record
-      await this.createAnalysisTrigger(userId, 'profile_update', triggerSource, profileData, session.id);
-      
-      // Get comprehensive user profile for context
+      // Get comprehensive user profile for context first
       const userContext = await this.getUserContext(userId);
       
-      // Perform specific analysis based on type
-      let analysisResults = [];
+      // Use cache service to get or generate analysis
+      const cacheKey = `${analysisType}_analysis`;
+      const analysisResult = await this.cacheService.getOrGenerate(
+        userId, 
+        cacheKey, 
+        { ...profileData, userContext }, 
+        async () => {
+          // This function will only be called if cache miss
+          console.log(`🤖 Generating new ${analysisType} analysis (cache miss)`);
+          
+          // Create analysis session only if generating new analysis
+          const session = await this.createAnalysisSession(userId, 'profile_update', `${analysisType}_profile_update`);
+          
+          // Create analysis trigger record
+          await this.createAnalysisTrigger(userId, 'profile_update', triggerSource, profileData, session.id);
+          
+          // Perform consolidated analysis based on type
+          let analysisResults = [];
+          
+          switch (analysisType) {
+            case 'skin':
+              analysisResults = await this.analyzeSkinProfileConsolidated(userId, profileData, userContext, session.id);
+              break;
+            case 'hair':
+              analysisResults = await this.analyzeHairProfileConsolidated(userId, profileData, userContext, session.id);
+              break;
+            case 'lifestyle':
+              analysisResults = await this.analyzeLifestyleProfileConsolidated(userId, profileData, userContext, session.id);
+              break;
+            case 'health':
+              analysisResults = await this.analyzeHealthProfileConsolidated(userId, profileData, userContext, session.id);
+              break;
+            case 'makeup':
+              analysisResults = await this.analyzeMakeupProfileConsolidated(userId, profileData, userContext, session.id);
+              break;
+            case 'comprehensive':
+              analysisResults = await this.performComprehensiveAnalysisConsolidated(userId, userContext, session.id);
+              break;
+            default:
+              throw new Error(`Unknown analysis type: ${analysisType}`);
+          }
+          
+          // Complete the session
+          await this.completeAnalysisSession(session.id, analysisResults);
+          
+          return {
+            sessionId: session.id,
+            analysisResults,
+            summary: await this.generateSessionSummary(analysisResults)
+          };
+        }
+      );
       
-      switch (analysisType) {
-        case 'skin':
-          analysisResults = await this.analyzeSkinProfile(userId, profileData, userContext, session.id);
-          break;
-        case 'hair':
-          analysisResults = await this.analyzeHairProfile(userId, profileData, userContext, session.id);
-          break;
-        case 'lifestyle':
-          analysisResults = await this.analyzeLifestyleProfile(userId, profileData, userContext, session.id);
-          break;
-        case 'health':
-          analysisResults = await this.analyzeHealthProfile(userId, profileData, userContext, session.id);
-          break;
-        case 'makeup':
-          analysisResults = await this.analyzeMakeupProfile(userId, profileData, userContext, session.id);
-          break;
-        case 'comprehensive':
-          analysisResults = await this.performComprehensiveAnalysis(userId, userContext, session.id);
-          break;
-        default:
-          throw new Error(`Unknown analysis type: ${analysisType}`);
+      // If from cache, we still want to provide a session-like response
+      if (analysisResult.fromCache) {
+        console.log(`✅ AI analysis retrieved from cache for user ${userId} (${analysisType})`);
+        return {
+          ...analysisResult.data,
+          fromCache: true,
+          cacheInfo: analysisResult.cacheInfo
+        };
       }
       
-      // Complete the session
-      await this.completeAnalysisSession(session.id, analysisResults);
-      
-      console.log(`✅ AI analysis completed for user ${userId}, generated ${analysisResults.length} insights`);
+      console.log(`✅ AI analysis completed for user ${userId}, generated new analysis`);
       return {
-        sessionId: session.id,
-        analysisResults,
-        summary: await this.generateSessionSummary(analysisResults)
+        ...analysisResult.data,
+        fromCache: false,
+        cacheInfo: analysisResult.cacheInfo
       };
       
     } catch (error) {
@@ -91,6 +121,32 @@ class AIAnalysisService {
   }
 
   /**
+   * CONSOLIDATED Skin Profile Analysis - Single comprehensive AI call
+   */
+  async analyzeSkinProfileConsolidated(userId, skinData, userContext, sessionId) {
+    console.log('🤖 Performing consolidated skin profile analysis...');
+    
+    // Single comprehensive analysis combining all aspects
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_skin_analysis',
+      data: skinData,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('skin', skinData, userContext)
+    });
+    
+    // Parse all insights at once from the consolidated response
+    const parsedAnalysis = this.parseConsolidatedSkinAnalysis(analysis);
+    
+    // Save consolidated result
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'skin', 'consolidated_analysis', skinData, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated skin analysis completed');
+    return [analysisResult];
+  }
+
+  /**
    * Analyze hair profile data - SINGLE API CALL
    */
   async analyzeHairProfile(userId, hairData, userContext, sessionId) {
@@ -111,6 +167,29 @@ class AIAnalysisService {
     
     console.log('✅ Comprehensive hair analysis completed');
     return analyses;
+  }
+
+  /**
+   * CONSOLIDATED Hair Profile Analysis - Single comprehensive AI call
+   */
+  async analyzeHairProfileConsolidated(userId, hairData, userContext, sessionId) {
+    console.log('🤖 Performing consolidated hair profile analysis...');
+    
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_hair_analysis',
+      data: hairData,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('hair', hairData, userContext)
+    });
+    
+    const parsedAnalysis = this.parseConsolidatedHairAnalysis(analysis);
+    
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'hair', 'consolidated_analysis', hairData, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated hair analysis completed');
+    return [analysisResult];
   }
 
   /**
@@ -137,6 +216,29 @@ class AIAnalysisService {
   }
 
   /**
+   * CONSOLIDATED Lifestyle Profile Analysis - Single comprehensive AI call
+   */
+  async analyzeLifestyleProfileConsolidated(userId, lifestyleData, userContext, sessionId) {
+    console.log('🤖 Performing consolidated lifestyle profile analysis...');
+    
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_lifestyle_analysis',
+      data: lifestyleData,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('lifestyle', lifestyleData, userContext)
+    });
+    
+    const parsedAnalysis = this.parseConsolidatedLifestyleAnalysis(analysis);
+    
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'lifestyle', 'consolidated_analysis', lifestyleData, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated lifestyle analysis completed');
+    return [analysisResult];
+  }
+
+  /**
    * Analyze health profile data - SINGLE API CALL
    */
   async analyzeHealthProfile(userId, healthData, userContext, sessionId) {
@@ -157,6 +259,29 @@ class AIAnalysisService {
     
     console.log('✅ Comprehensive health analysis completed');
     return analyses;
+  }
+
+  /**
+   * CONSOLIDATED Health Profile Analysis - Single comprehensive AI call
+   */
+  async analyzeHealthProfileConsolidated(userId, healthData, userContext, sessionId) {
+    console.log('🤖 Performing consolidated health profile analysis...');
+    
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_health_analysis',
+      data: healthData,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('health', healthData, userContext)
+    });
+    
+    const parsedAnalysis = this.parseConsolidatedHealthAnalysis(analysis);
+    
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'health', 'consolidated_analysis', healthData, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated health analysis completed');
+    return [analysisResult];
   }
 
   /**
@@ -183,6 +308,29 @@ class AIAnalysisService {
   }
 
   /**
+   * CONSOLIDATED Makeup Profile Analysis - Single comprehensive AI call
+   */
+  async analyzeMakeupProfileConsolidated(userId, makeupData, userContext, sessionId) {
+    console.log('🤖 Performing consolidated makeup profile analysis...');
+    
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_makeup_analysis',
+      data: makeupData,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('makeup', makeupData, userContext)
+    });
+    
+    const parsedAnalysis = this.parseConsolidatedMakeupAnalysis(analysis);
+    
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'makeup', 'consolidated_analysis', makeupData, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated makeup analysis completed');
+    return [analysisResult];
+  }
+
+  /**
    * Perform comprehensive analysis across all profile data
    */
   async performComprehensiveAnalysis(userId, userContext, sessionId) {
@@ -201,6 +349,29 @@ class AIAnalysisService {
     ));
     
     return analyses;
+  }
+
+  /**
+   * CONSOLIDATED Comprehensive Analysis - Single comprehensive AI call across all profile data
+   */
+  async performComprehensiveAnalysisConsolidated(userId, userContext, sessionId) {
+    console.log('🤖 Performing consolidated comprehensive analysis...');
+    
+    const analysis = await this.performAIAnalysis({
+      type: 'consolidated_comprehensive_analysis',
+      data: userContext,
+      context: userContext,
+      prompt: this.buildComprehensiveProfilePrompt('comprehensive', userContext, userContext)
+    });
+    
+    const parsedAnalysis = this.parseConsolidatedComprehensiveAnalysis(analysis);
+    
+    const analysisResult = await this.saveAnalysisResult(
+      userId, 'comprehensive', 'consolidated_analysis', userContext, parsedAnalysis, sessionId
+    );
+    
+    console.log('✅ Consolidated comprehensive analysis completed');
+    return [analysisResult];
   }
 
   /**
@@ -797,6 +968,464 @@ IMPORTANT: Respond with ONLY valid JSON. Do not include any markdown formatting,
 
 Provide JSON with: overall assessment, interconnected factors, holistic recommendations, lifestyle integration.
 `;
+  }
+
+  /**
+   * NEW CONSOLIDATED METHODS FOR SINGLE AI CALLS
+   */
+
+  /**
+   * Build comprehensive profile prompt for consolidated analysis
+   */
+  buildComprehensiveProfilePrompt(profileType, profileData, userContext) {
+    const baseContext = `
+User Context:
+- Age: ${userContext.age || 'Not specified'}
+- Gender: ${userContext.gender || 'Not specified'}
+- Location: ${userContext.location || 'Not specified'}
+- Climate: ${userContext.climate || 'Not specified'}
+- Skin Type: ${userContext.skin_type || 'Not specified'}
+- Skin Tone: ${userContext.skin_tone || 'Not specified'}
+- Hair Type: ${userContext.hair_type || 'Not specified'}
+
+Profile Data:
+${JSON.stringify(profileData, null, 2)}
+
+IMPORTANT: Respond with ONLY valid JSON. Do not include any markdown formatting, code blocks, or explanatory text. Return just the raw JSON object.
+`;
+
+    switch (profileType) {
+      case 'skin':
+        return `${baseContext}
+Provide a comprehensive skin analysis including ALL aspects in a single response:
+
+{
+  "skin_type_assessment": {
+    "confirmed_type": "oily|dry|combination|sensitive|normal",
+    "confidence": 0.85,
+    "reasoning": "Detailed explanation based on profile data"
+  },
+  "concerns_analysis": [
+    {
+      "concern": "acne|aging|dryness|sensitivity|pigmentation",
+      "severity": "mild|moderate|severe",
+      "treatment_priority": 1,
+      "recommended_ingredients": ["ingredient1", "ingredient2"],
+      "timeline": "Expected improvement timeline"
+    }
+  ],
+  "ingredient_recommendations": {
+    "recommended": ["niacinamide", "hyaluronic acid", "retinol"],
+    "avoid": ["harsh sulfates", "fragrances"],
+    "reasoning": "Why these ingredients work for this profile"
+  },
+  "product_recommendations": [
+    {
+      "category": "cleanser|moisturizer|serum|sunscreen",
+      "product_type": "specific product type",
+      "key_ingredients": ["ingredient1", "ingredient2"],
+      "usage": "application instructions",
+      "priority": 1
+    }
+  ],
+  "routine_recommendations": {
+    "morning": ["step1", "step2", "step3"],
+    "evening": ["step1", "step2", "step3"],
+    "weekly": ["exfoliation", "masks"]
+  },
+  "confidence_score": 0.85,
+  "key_insights": ["insight1", "insight2", "insight3"],
+  "recommendations": [
+    {
+      "title": "recommendation title",
+      "description": "detailed description",
+      "priority": 1
+    }
+  ]
+}`;
+
+      case 'hair':
+        return `${baseContext}
+Provide comprehensive hair analysis including ALL aspects:
+
+{
+  "hair_type_assessment": {
+    "confirmed_type": "straight|wavy|curly|coily",
+    "texture": "fine|medium|coarse",
+    "porosity": "low|medium|high",
+    "density": "thin|medium|thick",
+    "confidence": 0.85
+  },
+  "concerns_analysis": [
+    {
+      "concern": "dryness|damage|thinning|oily_scalp|dandruff",
+      "severity": "mild|moderate|severe",
+      "treatment_priority": 1,
+      "recommended_ingredients": ["ingredient1", "ingredient2"],
+      "timeline": "Expected improvement timeline"
+    }
+  ],
+  "care_recommendations": {
+    "washing_frequency": "frequency based on hair type",
+    "recommended_products": ["shampoo type", "conditioner type", "treatments"],
+    "styling_tips": ["tip1", "tip2", "tip3"]
+  },
+  "ingredient_recommendations": {
+    "beneficial": ["keratin", "argan oil", "biotin"],
+    "avoid": ["sulfates", "alcohols"],
+    "reasoning": "Why these work for this hair type"
+  },
+  "confidence_score": 0.85,
+  "key_insights": ["insight1", "insight2"],
+  "recommendations": [
+    {
+      "title": "Hair Care Routine",
+      "description": "Customized routine for hair type",
+      "priority": 1
+    }
+  ]
+}`;
+
+      case 'lifestyle':
+        return `${baseContext}
+Analyze lifestyle and environmental factors affecting beauty and wellness:
+
+{
+  "environmental_analysis": {
+    "climate_impact": "How climate affects skin/hair",
+    "pollution_effects": "Environmental stressor analysis",
+    "protective_measures": ["sunscreen", "antioxidants", "barriers"]
+  },
+  "lifestyle_factors": {
+    "diet_impact": "How diet affects skin/hair health",
+    "sleep_quality": "Impact of sleep on beauty",
+    "stress_levels": "Stress effects on appearance",
+    "exercise_routine": "Benefits of physical activity"
+  },
+  "recommendations": {
+    "diet": ["omega-3", "antioxidants", "hydration"],
+    "sleep": "7-9 hours for skin regeneration",
+    "stress_management": ["meditation", "skincare as self-care"],
+    "environmental_protection": ["daily SPF", "pollution barriers"]
+  },
+  "confidence_score": 0.8,
+  "key_insights": ["lifestyle factors identified", "protection strategies provided"],
+  "recommendations": [
+    {
+      "title": "Holistic Wellness",
+      "description": "Integrate beauty with lifestyle",
+      "priority": 1
+    }
+  ]
+}`;
+
+      case 'health':
+        return `${baseContext}
+Analyze health factors and provide safe beauty recommendations:
+
+{
+  "health_impact_analysis": {
+    "skin_effects": "How health conditions affect skin",
+    "hair_effects": "How conditions affect hair health",
+    "medication_interactions": "Potential interactions with beauty products"
+  },
+  "safe_recommendations": {
+    "gentle_ingredients": ["hypoallergenic", "fragrance-free", "dermatologist-tested"],
+    "ingredients_to_avoid": ["harsh actives", "potential irritants"],
+    "patch_testing": "Always recommend patch testing"
+  },
+  "professional_guidance": {
+    "dermatologist_consultation": "When to seek professional help",
+    "medication_considerations": "Discuss with healthcare provider"
+  },
+  "confidence_score": 0.75,
+  "key_insights": ["health factors assessed", "safety prioritized"],
+  "recommendations": [
+    {
+      "title": "Gentle Approach",
+      "description": "Prioritize gentle, safe products",
+      "priority": 1
+    }
+  ]
+}`;
+
+      case 'makeup':
+        return `${baseContext}
+Provide comprehensive makeup recommendations:
+
+{
+  "color_analysis": {
+    "skin_tone_match": "Foundation matching guidance",
+    "undertone_compatibility": "Colors that complement undertone",
+    "seasonal_palette": "Colors for different seasons"
+  },
+  "product_recommendations": [
+    {
+      "category": "foundation|concealer|blush|lipstick|eyeshadow",
+      "shade_guidance": "specific shade recommendations",
+      "formula_type": "liquid|powder|cream",
+      "application_tips": ["tip1", "tip2"]
+    }
+  ],
+  "look_suggestions": {
+    "everyday": "Natural, workplace-appropriate",
+    "evening": "More dramatic, occasion-wear",
+    "special_events": "Full glam recommendations"
+  },
+  "confidence_score": 0.8,
+  "key_insights": ["color palette customized", "looks tailored to lifestyle"],
+  "recommendations": [
+    {
+      "title": "Personalized Color Palette",
+      "description": "Makeup colors that enhance natural beauty",
+      "priority": 1
+    }
+  ]
+}`;
+
+      case 'comprehensive':
+        return `${baseContext}
+Provide holistic beauty and wellness analysis across all aspects:
+
+{
+  "overall_assessment": {
+    "beauty_profile_summary": "Complete overview of user's beauty profile",
+    "primary_focus_areas": ["area1", "area2", "area3"],
+    "interconnected_factors": "How different aspects relate to each other"
+  },
+  "integrated_recommendations": {
+    "skincare_haircare_synergy": "How routines can complement each other",
+    "lifestyle_beauty_integration": "Incorporating beauty into daily life",
+    "health_conscious_approach": "Balancing beauty goals with health"
+  },
+  "priority_action_plan": [
+    {
+      "phase": 1,
+      "timeline": "first 4 weeks",
+      "focus": "essential routine establishment",
+      "actions": ["action1", "action2", "action3"]
+    },
+    {
+      "phase": 2,
+      "timeline": "weeks 5-12",
+      "focus": "advanced treatments and optimization",
+      "actions": ["action1", "action2"]
+    }
+  ],
+  "long_term_strategy": {
+    "maintenance_routine": "Sustainable long-term approach",
+    "periodic_reassessment": "When to review and adjust",
+    "professional_support": "When to seek expert guidance"
+  },
+  "confidence_score": 0.85,
+  "key_insights": ["holistic approach recommended", "personalized strategy developed"],
+  "recommendations": [
+    {
+      "title": "Integrated Beauty Wellness",
+      "description": "Comprehensive approach to beauty and health",
+      "priority": 1
+    }
+  ]
+}`;
+
+      default:
+        throw new Error(`Unknown profile type: ${profileType}`);
+    }
+  }
+
+  /**
+   * PARSING METHODS FOR CONSOLIDATED ANALYSIS
+   */
+
+  parseConsolidatedSkinAnalysis(analysis) {
+    return {
+      skincare: this.extractSkincareInsights(analysis),
+      ingredients: this.extractIngredientRecommendations(analysis),
+      products: this.extractProductRecommendations(analysis),
+      routine: this.extractRoutineRecommendations(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  parseConsolidatedHairAnalysis(analysis) {
+    return {
+      haircare: this.extractHaircareInsights(analysis),
+      products: this.extractHairProductRecommendations(analysis),
+      routine: this.extractHairRoutineRecommendations(analysis),
+      styling: this.extractStylingRecommendations(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  parseConsolidatedLifestyleAnalysis(analysis) {
+    return {
+      environmental: this.extractEnvironmentalFactors(analysis),
+      lifestyle: this.extractLifestyleRecommendations(analysis),
+      protection: this.extractProtectiveMeasures(analysis),
+      wellness: this.extractWellnessInsights(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  parseConsolidatedHealthAnalysis(analysis) {
+    return {
+      healthImpact: this.extractHealthImpactAnalysis(analysis),
+      safeIngredients: this.extractSafeIngredients(analysis),
+      precautions: this.extractHealthPrecautions(analysis),
+      professionalGuidance: this.extractProfessionalRecommendations(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  parseConsolidatedMakeupAnalysis(analysis) {
+    return {
+      colorMatching: this.extractColorRecommendations(analysis),
+      products: this.extractMakeupProductRecommendations(analysis),
+      looks: this.extractLookSuggestions(analysis),
+      techniques: this.extractApplicationTechniques(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  parseConsolidatedComprehensiveAnalysis(analysis) {
+    return {
+      overallAssessment: this.extractOverallAssessment(analysis),
+      integratedRecommendations: this.extractIntegratedRecommendations(analysis),
+      actionPlan: this.extractActionPlan(analysis),
+      longTermStrategy: this.extractLongTermStrategy(analysis),
+      rawAnalysis: analysis
+    };
+  }
+
+  /**
+   * EXTRACTION HELPER METHODS
+   */
+
+  extractSkincareInsights(analysis) {
+    return {
+      skinType: analysis.skin_type_assessment || {},
+      concerns: analysis.concerns_analysis || [],
+      confidence: analysis.confidence_score || 0.8
+    };
+  }
+
+  extractIngredientRecommendations(analysis) {
+    return {
+      recommended: analysis.ingredient_recommendations?.recommended || [],
+      avoid: analysis.ingredient_recommendations?.avoid || [],
+      reasoning: analysis.ingredient_recommendations?.reasoning || ''
+    };
+  }
+
+  extractProductRecommendations(analysis) {
+    return analysis.product_recommendations || [];
+  }
+
+  extractRoutineRecommendations(analysis) {
+    return analysis.routine_recommendations || {};
+  }
+
+  extractHaircareInsights(analysis) {
+    return {
+      hairType: analysis.hair_type_assessment || {},
+      concerns: analysis.concerns_analysis || []
+    };
+  }
+
+  extractHairProductRecommendations(analysis) {
+    return analysis.care_recommendations?.recommended_products || [];
+  }
+
+  extractHairRoutineRecommendations(analysis) {
+    return {
+      washingFrequency: analysis.care_recommendations?.washing_frequency || '',
+      routine: analysis.care_recommendations || {}
+    };
+  }
+
+  extractStylingRecommendations(analysis) {
+    return analysis.care_recommendations?.styling_tips || [];
+  }
+
+  extractEnvironmentalFactors(analysis) {
+    return analysis.environmental_analysis || {};
+  }
+
+  extractLifestyleRecommendations(analysis) {
+    return analysis.lifestyle_factors || {};
+  }
+
+  extractProtectiveMeasures(analysis) {
+    return analysis.environmental_analysis?.protective_measures || [];
+  }
+
+  extractWellnessInsights(analysis) {
+    return analysis.recommendations || {};
+  }
+
+  extractHealthImpactAnalysis(analysis) {
+    return analysis.health_impact_analysis || {};
+  }
+
+  extractSafeIngredients(analysis) {
+    return analysis.safe_recommendations || {};
+  }
+
+  extractHealthPrecautions(analysis) {
+    return analysis.safe_recommendations?.ingredients_to_avoid || [];
+  }
+
+  extractProfessionalRecommendations(analysis) {
+    return analysis.professional_guidance || {};
+  }
+
+  extractColorRecommendations(analysis) {
+    return analysis.color_analysis || {};
+  }
+
+  extractMakeupProductRecommendations(analysis) {
+    return analysis.product_recommendations || [];
+  }
+
+  extractLookSuggestions(analysis) {
+    return analysis.look_suggestions || {};
+  }
+
+  extractApplicationTechniques(analysis) {
+    return analysis.product_recommendations?.map(p => p.application_tips).flat() || [];
+  }
+
+  extractOverallAssessment(analysis) {
+    return analysis.overall_assessment || {};
+  }
+
+  extractIntegratedRecommendations(analysis) {
+    return analysis.integrated_recommendations || {};
+  }
+
+  extractActionPlan(analysis) {
+    return analysis.priority_action_plan || [];
+  }
+
+  extractLongTermStrategy(analysis) {
+    return analysis.long_term_strategy || {};
+  }
+
+  /**
+   * Cache management methods
+   */
+  async invalidateUserAnalysisCache(userId, analysisType = null) {
+    console.log(`🗑️ Invalidating analysis cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
+    await this.cacheService.invalidateCache(userId, analysisType);
+  }
+
+  async getCacheStatistics(userId = null) {
+    return await this.cacheService.getCacheStats(userId);
+  }
+
+  async cleanupExpiredCache() {
+    console.log('🧹 Cleaning up expired analysis cache entries...');
+    await this.cacheService.cleanupExpiredCache();
   }
 
   /**

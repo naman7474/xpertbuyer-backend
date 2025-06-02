@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 
 const apiRoutes = require('./routes/api');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const CacheCleanupService = require('./utils/cacheCleanupService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -74,6 +75,9 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
+// Initialize cache cleanup service
+const cacheCleanupService = new CacheCleanupService();
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 XpertBuyer API server running on port ${PORT}`);
@@ -90,16 +94,26 @@ app.listen(PORT, () => {
   } else {
     console.log('✅ All required environment variables are set');
   }
+  
+  // Start cache cleanup service
+  try {
+    cacheCleanupService.startPeriodicCleanup(6); // Clean up every 6 hours
+    console.log('🧹 Cache cleanup service initialized');
+  } catch (error) {
+    console.warn('⚠️  Cache cleanup service failed to start:', error.message);
+  }
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
+  cacheCleanupService.stopPeriodicCleanup();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully');
+  cacheCleanupService.stopPeriodicCleanup();
   process.exit(0);
 });
 

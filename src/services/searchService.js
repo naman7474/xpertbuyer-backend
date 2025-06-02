@@ -1,6 +1,7 @@
 const { EnhancedSearchService } = require('./sqlQueryGeneratorService');
 const geminiService = require('./geminiService');
 const productService = require('./productService');
+const userContextService = require('./userContextService');
 const supabase = require('../config/database');
 
 class SearchService {
@@ -10,25 +11,41 @@ class SearchService {
   }
 
   /**
-   * Main search function - now uses SQL generation for complex queries
+   * Main search function - now uses SQL generation for complex queries and user personalization
    */
   async search(query, options = {}) {
     try {
-      const { limit = 4, includeIngredients = true } = options;
+      const { limit = 4, includeIngredients = true, userId } = options;
 
-      // Step 1: Standardize user query with Gemini (always do this first)
-      console.log('Step 1: Parsing and standardizing query with Gemini...');
-      const parsedQueryFull = await geminiService.parseQuery(query);
-      console.log('Parsed query (full):', parsedQueryFull);
+      // Step 1: Get user context if authenticated
+      let userContext = null;
+      if (userId) {
+        console.log(`🧑‍💼 Getting user context for personalization (userId: ${userId})...`);
+        userContext = await userContextService.getUserContext(userId);
+        
+        if (userContext && userContextService.hasPersonalizationData(userContext)) {
+          console.log(`✅ User context retrieved - Profile completeness: ${userContext.preferences.profileCompleteness}%`);
+        } else {
+          console.log('ℹ️ Limited user profile data - using basic personalization');
+        }
+      }
 
-      // Step 2: Detect query complexity
+      // Step 2: Parse query with user context for personalization
+      console.log('Step 2: Parsing and standardizing query with user context...');
+      const parsedQueryFull = await geminiService.parseQueryWithContext(query, userContext);
+      console.log('Parsed query (with context):', {
+        ...parsedQueryFull,
+        userContext: parsedQueryFull.userContext ? '✅ Available' : '❌ Not available'
+      });
+
+      // Step 3: Detect query complexity
       const queryComplexity = this.analyzeQueryComplexity(query);
       
       let productsToRank;
       let sqlMetadata = {}; // To store metadata from SQL generation if it happens
       let searchMethod = 'standard'; // Default search method
 
-      // Step 3: Use enhanced search for complex queries
+      // Step 4: Use enhanced search for complex queries or apply personalized filtering
       if (queryComplexity.isComplex) {
         console.log('Using AI-powered SQL generation for complex query');
         try {
@@ -49,11 +66,11 @@ class SearchService {
 
       // If not complex, or if SQL search yielded no results/failed, use standard product retrieval
       if (!productsToRank || productsToRank.length === 0) {
-        console.log('Using standard product retrieval.');
-        // Pass parsedQueryFull to avoid re-parsing
-        productsToRank = await productService.searchProducts(parsedQueryFull, limit * 5); // Fetch more for ranking
-        searchMethod = 'standard-retrieval';
-        console.log(`Retrieved ${productsToRank.length} products via standard search for ranking.`);
+        console.log('Using personalized product search...');
+        // Pass parsedQueryFull to avoid re-parsing and get more products for personalized ranking
+        productsToRank = await this.personalizedProductSearch(parsedQueryFull, userContext, limit * 5);
+        searchMethod = userContext ? 'personalized-retrieval' : 'standard-retrieval';
+        console.log(`Retrieved ${productsToRank.length} products via ${searchMethod} for ranking.`);
       }
 
       if (!productsToRank || productsToRank.length === 0) {
@@ -67,13 +84,13 @@ class SearchService {
         };
       }
 
-      // Step 4: Rank products using Gemini (using products from either SQL or standard search)
-      console.log(`Step 4: Ranking ${productsToRank.length} products with Gemini...`);
-      const rankedProducts = await geminiService.rankProducts(productsToRank, parsedQueryFull, limit);
-      console.log(`Ranked ${rankedProducts.length} products.`);
+      // Step 5: Rank products using personalized Gemini ranking
+      console.log(`Step 5: Ranking ${productsToRank.length} products with personalized AI ranking...`);
+      const rankedProducts = await this.personalizedRanking(productsToRank, parsedQueryFull, userContext, limit);
+      console.log(`Ranked ${rankedProducts.length} products with ${userContext ? 'personalized' : 'standard'} criteria.`);
 
-      // Step 5: Format results
-      return await this.formatResults(query, parsedQueryFull, rankedProducts, sqlMetadata, searchMethod, includeIngredients, productsToRank.length);
+      // Step 6: Format results with personalization context
+      return await this.formatResults(query, parsedQueryFull, rankedProducts, sqlMetadata, searchMethod, includeIngredients, productsToRank.length, userContext);
 
     } catch (error) {
       console.error('Critical error in main search service:', error);
@@ -118,9 +135,91 @@ class SearchService {
   }
 
   /**
+   * Personalized product search that considers user context
+   */
+  async personalizedProductSearch(parsedQuery, userContext, limit = 20) {
+    // If no user context, fall back to standard search
+    if (!userContext || !userContext.preferences) {
+      return await productService.searchProducts(parsedQuery, limit);
+    }
+
+    const prefs = userContext.preferences;
+    
+    // Get base products from standard search
+    let products = await productService.searchProducts(parsedQuery, limit * 2);
+    
+    // Apply personalization filters
+    if (prefs.avoidIngredients.length > 0) {
+      products = products.filter(product => {
+        if (!product.ingredients) return true;
+        
+        try {
+          const ingredients = typeof product.ingredients === 'string' 
+            ? JSON.parse(product.ingredients) 
+            : product.ingredients;
+          
+          const ingredientList = Array.isArray(ingredients) 
+            ? ingredients.map(ing => typeof ing === 'string' ? ing.toLowerCase() : ing.name?.toLowerCase()).filter(Boolean)
+            : [];
+            
+          // Filter out products with avoided ingredients
+          return !prefs.avoidIngredients.some(avoid => 
+            ingredientList.some(ing => ing.includes(avoid.toLowerCase()))
+          );
+        } catch {
+          return true; // Keep product if we can't parse ingredients
+        }
+      });
+    }
+
+    // Boost products with preferred ingredients
+    if (prefs.preferredIngredients.length > 0) {
+      products = products.map(product => {
+        let boostScore = 0;
+        
+        if (product.ingredients) {
+          try {
+            const ingredients = typeof product.ingredients === 'string' 
+              ? JSON.parse(product.ingredients) 
+              : product.ingredients;
+            
+            const ingredientList = Array.isArray(ingredients) 
+              ? ingredients.map(ing => typeof ing === 'string' ? ing.toLowerCase() : ing.name?.toLowerCase()).filter(Boolean)
+              : [];
+              
+            // Boost score for each preferred ingredient found
+            prefs.preferredIngredients.forEach(preferred => {
+              if (ingredientList.some(ing => ing.includes(preferred.toLowerCase()))) {
+                boostScore += 0.2;
+              }
+            });
+          } catch {
+            // Ignore parsing errors
+          }
+        }
+        
+        return {
+          ...product,
+          personalization_boost: boostScore
+        };
+      });
+    }
+
+    return products.slice(0, limit);
+  }
+
+  /**
+   * Personalized ranking that uses user context
+   */
+  async personalizedRanking(products, parsedQuery, userContext, limit = 4) {
+    // Use Gemini with enhanced context for ranking
+    return await geminiService.rankProducts(products, parsedQuery, limit);
+  }
+
+  /**
    * Format enhanced search results to match existing API structure
    */
-  async formatResults(originalQuery, parsedQueryFull, rankedProducts, sqlMetadata, searchMethod, includeIngredients, totalRetrievedBeforeRanking) {
+  async formatResults(originalQuery, parsedQueryFull, rankedProducts, sqlMetadata, searchMethod, includeIngredients, totalRetrievedBeforeRanking, userContext = null) {
     const formattedProducts = rankedProducts.map((product, index) => {
       // Format ingredients
       const formattedIngredients = this.formatIngredients(product);
@@ -180,14 +279,25 @@ class SearchService {
       ingredientHighlights = await this.getIngredientHighlights([parsedQueryFull.concern]); 
     }
 
+    // Generate personalized message
     let message = `Found ${formattedProducts.length} recommended products for your ${parsedQueryFull.concern || 'skincare'} needs.`;
+    
+    if (userContext && userContext.preferences) {
+      const prefs = userContext.preferences;
+      if (prefs.profileCompleteness > 50) {
+        message = `Found ${formattedProducts.length} personalized products based on your profile for ${parsedQueryFull.concern || 'skincare'} needs.`;
+      } else if (prefs.skin.skinType || prefs.skin.concerns.length > 0) {
+        message = `Found ${formattedProducts.length} products tailored for your ${prefs.skin.skinType || 'skin'} and ${parsedQueryFull.concern || 'skincare'} needs.`;
+      }
+    }
+    
     if (searchMethod === 'ai-enhanced-sql' && sqlMetadata?.message) {
       message = sqlMetadata.message; // Use message from SQL step if available
     } else if (searchMethod === 'ai-enhanced-sql') {
         message = `Found ${formattedProducts.length} products via AI-SQL for your ${parsedQueryFull.concern || 'skincare'} needs.`
     }
 
-    return {
+    const response = {
       query: originalQuery,
       parsedQuery: parsedQueryFull, // This is the standardized query from Step 1
       products: formattedProducts,
@@ -197,6 +307,27 @@ class SearchService {
       searchMethod: searchMethod,
       sqlGenerationMetadata: (searchMethod === 'ai-enhanced-sql') ? sqlMetadata : null
     };
+
+    // Add personalization metadata if available
+    if (userContext && userContext.preferences) {
+      response.personalization = {
+        isPersonalized: true,
+        userSegment: userContext.preferences.userSegment,
+        profileCompleteness: userContext.preferences.profileCompleteness,
+        skinType: userContext.preferences.skin.skinType,
+        primaryConcerns: userContext.preferences.skin.concerns,
+        avoidedIngredients: userContext.preferences.avoidIngredients,
+        preferredIngredients: userContext.preferences.preferredIngredients,
+        priceRange: userContext.preferences.priceRange
+      };
+    } else {
+      response.personalization = {
+        isPersonalized: false,
+        reason: 'No user profile data available'
+      };
+    }
+
+    return response;
   }
 
   /**

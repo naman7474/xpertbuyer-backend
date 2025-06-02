@@ -3,14 +3,21 @@ const searchService = require('../services/searchService');
 class SearchController {
   /**
    * POST /api/search
-   * Main search endpoint
+   * Main search endpoint with optional user personalization
    */
   async search(req, res, next) {
     try {
       const { query, limit, includeIngredients } = req.validatedData;
       
+      // Extract user ID if authenticated (optional)
+      const userId = req.user?.id || null;
+      
       const startTime = Date.now();
-      const results = await searchService.search(query, { limit, includeIngredients });
+      const results = await searchService.search(query, { 
+        limit, 
+        includeIngredients, 
+        userId 
+      });
       const processingTime = Date.now() - startTime;
 
       res.json({
@@ -18,7 +25,8 @@ class SearchController {
         data: results,
         meta: {
           processingTime: `${processingTime}ms`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          personalized: results.personalization?.isPersonalized || false
         }
       });
     } catch (error) {

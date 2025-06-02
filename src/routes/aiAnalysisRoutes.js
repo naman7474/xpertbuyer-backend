@@ -21,4 +21,9 @@ router.get('/result/:analysisId', aiAnalysisController.getAnalysisResult);
 router.get('/recommendations', aiAnalysisController.getActiveRecommendations);
 router.patch('/recommendations/:recommendationId/complete', aiAnalysisController.markRecommendationCompleted);
 
+// Cache management endpoints
+router.get('/cache/stats', aiAnalysisController.getCacheStatistics);
+router.delete('/cache/invalidate', aiAnalysisController.invalidateUserCache);
+router.delete('/cache/invalidate/:analysisType', aiAnalysisController.invalidateUserCacheByType);
+
 module.exports = router; 

@@ -1,5 +1,6 @@
 const aiAnalysisService = require('../services/aiAnalysisService');
 const supabase = require('../config/database');
+const CacheCleanupService = require('../utils/cacheCleanupService');
 
 const aiAnalysisController = {
   /**
@@ -337,6 +338,117 @@ const aiAnalysisController = {
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve insights summary',
+        error: error.message
+      });
+    }
+  },
+
+  /**
+   * Get cache statistics for the user
+   */
+  async getCacheStatistics(req, res) {
+    try {
+      const userId = req.user.id;
+      const cacheCleanupService = new CacheCleanupService();
+      
+      // Get user-specific cache stats
+      const userStats = await aiAnalysisService.getCacheStatistics(userId);
+      
+      // Get overall cache health
+      const healthCheck = await cacheCleanupService.healthCheck();
+      
+      res.json({
+        success: true,
+        data: {
+          user_cache: userStats,
+          system_health: healthCheck,
+          cache_info: {
+            description: 'AI analysis results are cached to improve performance',
+            ttl_info: {
+              skin_analysis: '7 days',
+              hair_analysis: '7 days', 
+              lifestyle_analysis: '3 days',
+              health_analysis: '7 days',
+              makeup_analysis: '7 days',
+              comprehensive_analysis: '12 hours'
+            }
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error('Get cache statistics error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve cache statistics',
+        error: error.message
+      });
+    }
+  },
+
+  /**
+   * Invalidate all cache for the user
+   */
+  async invalidateUserCache(req, res) {
+    try {
+      const userId = req.user.id;
+      
+      await aiAnalysisService.invalidateUserAnalysisCache(userId);
+      
+      res.json({
+        success: true,
+        message: 'User cache invalidated successfully',
+        data: {
+          user_id: userId,
+          invalidated_at: new Date().toISOString(),
+          note: 'All cached AI analysis results for this user have been cleared'
+        }
+      });
+      
+    } catch (error) {
+      console.error('Invalidate user cache error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to invalidate user cache',
+        error: error.message
+      });
+    }
+  },
+
+  /**
+   * Invalidate cache for specific analysis type
+   */
+  async invalidateUserCacheByType(req, res) {
+    try {
+      const userId = req.user.id;
+      const { analysisType } = req.params;
+      
+      const validTypes = ['skin_analysis', 'hair_analysis', 'lifestyle_analysis', 'health_analysis', 'makeup_analysis', 'comprehensive_analysis'];
+      if (!validTypes.includes(analysisType)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid analysis type. Must be one of: ${validTypes.join(', ')}`
+        });
+      }
+      
+      await aiAnalysisService.invalidateUserAnalysisCache(userId, analysisType);
+      
+      res.json({
+        success: true,
+        message: `${analysisType} cache invalidated successfully`,
+        data: {
+          user_id: userId,
+          analysis_type: analysisType,
+          invalidated_at: new Date().toISOString(),
+          note: `Cached ${analysisType} results for this user have been cleared`
+        }
+      });
+      
+    } catch (error) {
+      console.error('Invalidate user cache by type error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to invalidate user cache by type',
         error: error.message
       });
     }

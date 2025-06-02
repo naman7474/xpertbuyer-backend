@@ -68,7 +68,58 @@ Guidelines:
   }
 
   /**
-   * Step 3: Rank products based on query and user segment, with match reasons
+   * Parse query with user context for personalized search
+   */
+  async parseQueryWithContext(query, userContext = null) {
+    // First parse the basic query
+    const basicParsedQuery = await this.parseQuery(query);
+    
+    // If no user context, return basic parsing
+    if (!userContext || !userContext.preferences) {
+      return basicParsedQuery;
+    }
+
+    const prefs = userContext.preferences;
+    
+    // Enhance parsed query with user context
+    const enhancedQuery = {
+      ...basicParsedQuery,
+      
+      // Override user segment with profile-based segment if available
+      user_segment: prefs.userSegment || basicParsedQuery.user_segment,
+      
+      // Use profile skin type if not mentioned in query
+      skin_type: basicParsedQuery.skin_type || prefs.skin.skinType,
+      
+      // Use profile price sensitivity if not mentioned in query
+      price_sensitivity: basicParsedQuery.price_sensitivity || prefs.priceRange,
+      
+      // Add user context for personalization
+      userContext: {
+        skinType: prefs.skin.skinType,
+        skinConcerns: prefs.skin.concerns,
+        skinSensitivity: prefs.skin.sensitivity,
+        avoidIngredients: prefs.avoidIngredients,
+        preferredIngredients: prefs.preferredIngredients,
+        priceRange: prefs.priceRange,
+        age: prefs.age,
+        gender: prefs.gender,
+        climate: prefs.lifestyle.climate,
+        location: prefs.lifestyle.location,
+        profileCompleteness: prefs.profileCompleteness
+      }
+    };
+
+    // If query doesn't specify concern but user has primary concerns, use those
+    if (!enhancedQuery.concern && prefs.skin.concerns.length > 0) {
+      enhancedQuery.concern = prefs.skin.concerns[0]; // Use primary concern
+    }
+
+    return enhancedQuery;
+  }
+
+  /**
+   * Step 3: Rank products based on query and user context, with match reasons
    */
   async rankProducts(products, parsedQuery, limit = 4) {
     if (!products || products.length === 0) {
@@ -88,9 +139,28 @@ Guidelines:
       }));
     }
 
+    // Build personalization context for AI ranking
+    let personalizationContext = '';
+    if (parsedQuery.userContext) {
+      const ctx = parsedQuery.userContext;
+      personalizationContext = `
+User Profile Context:
+- Skin Type: ${ctx.skinType || 'Not specified'}
+- Primary Skin Concerns: ${ctx.skinConcerns?.join(', ') || 'Not specified'}
+- Skin Sensitivity: ${ctx.skinSensitivity || 'Not specified'}
+- Ingredients to Avoid: ${ctx.avoidIngredients?.join(', ') || 'None specified'}
+- Preferred Ingredients: ${ctx.preferredIngredients?.join(', ') || 'None specified'}
+- Age: ${ctx.age || 'Not specified'}
+- Gender: ${ctx.gender || 'Not specified'}
+- Climate: ${ctx.climate || 'Not specified'}
+- Location: ${ctx.location || 'Not specified'}
+- Profile Completeness: ${ctx.profileCompleteness}%
+`;
+    }
+
     // For other segments, use AI ranking with detailed reasons
     const prompt = `
-You are a skincare expert. Rank the following products based on the user query and provide specific reasons why each product is suitable for this user.
+You are a skincare expert. Rank the following products based on the user query and their personal profile, providing specific reasons why each product is suitable for this user.
 
 User Query Analysis:
 - Intent: ${parsedQuery.intent}
@@ -100,6 +170,8 @@ User Query Analysis:
 - Skin Type: ${parsedQuery.skin_type || 'Not specified'}
 - User Segment: ${parsedQuery.user_segment}
 - Price Sensitivity: ${parsedQuery.price_sensitivity || 'Not specified'}
+
+${personalizationContext}
 
 Products to rank:
 ${products.map((product, index) => `
@@ -111,6 +183,15 @@ ${index + 1}. ${product.brand_name} ${product.product_name}
 `).join('\n')}
 
 Rank these products from most relevant to least relevant for this user and provide specific match reasons.
+
+${personalizationContext ? `
+IMPORTANT: Use the user's profile information to:
+- Prioritize products suitable for their skin type and concerns
+- Avoid or deprioritize products with ingredients they should avoid
+- Highlight products with their preferred ingredients
+- Consider their age, gender, and climate for recommendations
+- Match their price sensitivity and user segment preferences
+` : ''}
 
 Return ONLY a JSON array with this structure:
 [
@@ -198,81 +279,77 @@ Based on the user's skincare concern and query, provide brief, engaging descript
 
 User Query Analysis:
 - Concern: ${parsedQuery.concern || 'General skincare'}
-- Intent: ${parsedQuery.intent}
+- Skin Type: ${parsedQuery.skin_type || 'Not specified'}
 - User Segment: ${parsedQuery.user_segment}
 
-Ingredients:
-${relevantIngredients.map(ing => `
-- ${ing.display_name}: ${ing.benefit_summary}
-  Concerns: ${ing.concern_tags?.join(', ') || 'General'}
-`).join('\n')}
+Ingredients: ${relevantIngredients.join(', ')}
 
-For each ingredient, provide a 1-2 sentence highlight that explains why it's relevant for the user's concern.
+For each ingredient, provide:
+- Name
+- Brief benefit (20-30 words)
+- Why it's relevant for this user's concern
+
 Return as JSON array:
-[
-  {
-    "ingredient": "ingredient_name",
-    "highlight": "brief description of why it's good for their concern"
-  }
-]
+[{"name": "ingredient", "benefit": "short description", "relevance": "why good for this concern"}]
 `;
 
     try {
       const result = await models.flash.generateContent(prompt);
       const response = result.response.text();
-      
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        return relevantIngredients.map(ing => ({
-          ingredient: ing.display_name,
-          highlight: ing.benefit_summary
-        }));
-      }
-      
-      return JSON.parse(jsonMatch[0]);
+      const jsonMatch = response.match(/\[[\s\S]*?\]/);
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch (error) {
       console.error('Error generating ingredient highlights:', error);
-      return relevantIngredients.map(ing => ({
-        ingredient: ing.display_name,
-        highlight: ing.benefit_summary
-      }));
+      return [];
     }
   }
 
   /**
-   * Helper methods
+   * Validate parsed query structure
    */
   validateParsedQuery(data) {
-    const validIntents = Object.values(INTENT_TYPES);
-    const validSegments = Object.values(USER_SEGMENTS);
-    
-    if (!validIntents.includes(data.intent)) {
-      data.intent = INTENT_TYPES.TREATMENT_SEARCH;
-    }
-    
-    if (!validSegments.includes(data.user_segment)) {
-      data.user_segment = USER_SEGMENTS.CONCERN_FOCUSED_NOVICES;
+    const requiredFields = ['intent', 'user_segment'];
+    for (const field of requiredFields) {
+      if (!data.hasOwnProperty(field)) {
+        throw new Error(`Missing required field: ${field}`);
+      }
     }
   }
 
+  /**
+   * Extract key ingredients from product for display
+   */
   extractKeyIngredients(product) {
-    if (product.ingredients_extracted && Array.isArray(product.ingredients_extracted)) {
-      return product.ingredients_extracted
-        .slice(0, 3)
-        .map(ing => ing.name)
-        .join(', ');
+    if (!product.ingredients) return 'Not specified';
+    
+    try {
+      const ingredients = typeof product.ingredients === 'string' 
+        ? JSON.parse(product.ingredients) 
+        : product.ingredients;
+      
+      return Array.isArray(ingredients) 
+        ? ingredients.slice(0, 3).join(', ') 
+        : 'Not specified';
+    } catch {
+      return 'Not specified';
     }
-    return 'Not specified';
   }
 
+  /**
+   * Extract key benefits from product for display
+   */
   extractKeyBenefits(product) {
-    if (product.benefits_extracted && Array.isArray(product.benefits_extracted)) {
-      return product.benefits_extracted
-        .slice(0, 3)
-        .map(benefit => benefit.benefit)
-        .join(', ');
+    if (!product.benefits_extracted) return 'Not specified';
+    
+    try {
+      const benefits = Array.isArray(product.benefits_extracted) 
+        ? product.benefits_extracted 
+        : JSON.parse(product.benefits_extracted);
+      
+      return benefits.slice(0, 3).join(', ');
+    } catch {
+      return 'Not specified';
     }
-    return 'Not specified';
   }
 }
 
