@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -26,6 +27,10 @@ const authenticateToken = async (req, res, next) => {
       .single();
 
     if (userError || !user) {
+      Logger.warn('Authentication failed - user not found or inactive', {
+        userId: decoded.userId,
+        error: userError?.message
+      });
       return res.status(401).json({ 
         success: false, 
         message: 'User not found or inactive' 
@@ -46,6 +51,10 @@ const authenticateToken = async (req, res, next) => {
       .single();
 
     if (sessionError || !session) {
+      Logger.warn('Authentication failed - invalid session', {
+        userId: decoded.userId,
+        sessionError: sessionError?.message
+      });
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid or expired session' 
@@ -56,7 +65,11 @@ const authenticateToken = async (req, res, next) => {
     req.sessionId = session.id;
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    Logger.error('Authentication middleware error', {
+      error: error.message,
+      name: error.name
+    });
+    
     if (error.name === 'JsonWebTokenError') {
       return res.status(403).json({ 
         success: false, 
@@ -112,6 +125,7 @@ const optionalAuth = async (req, res, next) => {
       req.user = null;
     }
   } catch (error) {
+    // For optional auth, silently fail and continue without user
     req.user = null;
   }
   

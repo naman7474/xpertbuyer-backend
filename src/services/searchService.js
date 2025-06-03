@@ -3,6 +3,7 @@ const geminiService = require('./geminiService');
 const productService = require('./productService');
 const userContextService = require('./userContextService');
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 class SearchService {
   constructor() {
@@ -20,22 +21,22 @@ class SearchService {
       // Step 1: Get user context if authenticated
       let userContext = null;
       if (userId) {
-        console.log(`🧑‍💼 Getting user context for personalization (userId: ${userId})...`);
+        Logger.debug(`Getting user context for personalization (userId: ${userId})`);
         userContext = await userContextService.getUserContext(userId);
         
         if (userContext && userContextService.hasPersonalizationData(userContext)) {
-          console.log(`✅ User context retrieved - Profile completeness: ${userContext.preferences.profileCompleteness}%`);
+          Logger.debug(`User context retrieved - Profile completeness: ${userContext.preferences.profileCompleteness}%`);
         } else {
-          console.log('ℹ️ Limited user profile data - using basic personalization');
+          Logger.debug('Limited user profile data - using basic personalization');
         }
       }
 
       // Step 2: Parse query with user context for personalization
-      console.log('Step 2: Parsing and standardizing query with user context...');
+      Logger.debug('Parsing and standardizing query with user context');
       const parsedQueryFull = await geminiService.parseQueryWithContext(query, userContext);
-      console.log('Parsed query (with context):', {
-        ...parsedQueryFull,
-        userContext: parsedQueryFull.userContext ? '✅ Available' : '❌ Not available'
+      Logger.debug('Parsed query with context', {
+        hasUserContext: !!parsedQueryFull.userContext,
+        queryType: parsedQueryFull.type
       });
 
       // Step 3: Detect query complexity
@@ -47,30 +48,30 @@ class SearchService {
 
       // Step 4: Use enhanced search for complex queries or apply personalized filtering
       if (queryComplexity.isComplex) {
-        console.log('Using AI-powered SQL generation for complex query');
+        Logger.debug('Using AI-powered SQL generation for complex query');
         try {
           const enhancedResults = await this.enhancedSearch.search(query, options);
           if (enhancedResults.products && enhancedResults.products.length > 0) {
             productsToRank = enhancedResults.products;
             sqlMetadata = enhancedResults.metadata; // Store metadata from SQL step
             searchMethod = 'ai-enhanced-sql';
-            console.log(`Retrieved ${productsToRank.length} products via SQL for ranking.`);
+            Logger.debug(`Retrieved ${productsToRank.length} products via SQL for ranking`);
           } else {
-            console.log('AI SQL generation yielded no products, falling back to standard search logic for product retrieval.');
+            Logger.debug('AI SQL generation yielded no products, falling back to standard search logic');
           }
         } catch (sqlError) {
-          console.error('Error during AI SQL search, falling back to standard search logic:', sqlError);
+          Logger.warn('Error during AI SQL search, falling back to standard search logic', { error: sqlError.message });
           // Fallback to standard product retrieval if SQL search fails
         }
       }
 
       // If not complex, or if SQL search yielded no results/failed, use standard product retrieval
       if (!productsToRank || productsToRank.length === 0) {
-        console.log('Using personalized product search...');
+        Logger.debug('Using personalized product search');
         // Pass parsedQueryFull to avoid re-parsing and get more products for personalized ranking
         productsToRank = await this.personalizedProductSearch(parsedQueryFull, userContext, limit * 5);
         searchMethod = userContext ? 'personalized-retrieval' : 'standard-retrieval';
-        console.log(`Retrieved ${productsToRank.length} products via ${searchMethod} for ranking.`);
+        Logger.debug(`Retrieved ${productsToRank.length} products via ${searchMethod} for ranking`);
       }
 
       if (!productsToRank || productsToRank.length === 0) {
@@ -85,21 +86,21 @@ class SearchService {
       }
 
       // Step 5: Rank products using personalized Gemini ranking
-      console.log(`Step 5: Ranking ${productsToRank.length} products with personalized AI ranking...`);
+      Logger.debug(`Ranking ${productsToRank.length} products with personalized AI ranking`);
       const rankedProducts = await this.personalizedRanking(productsToRank, parsedQueryFull, userContext, limit);
-      console.log(`Ranked ${rankedProducts.length} products with ${userContext ? 'personalized' : 'standard'} criteria.`);
+      Logger.debug(`Ranked ${rankedProducts.length} products with ${userContext ? 'personalized' : 'standard'} criteria`);
 
       // Step 6: Format results with personalization context
       return await this.formatResults(query, parsedQueryFull, rankedProducts, sqlMetadata, searchMethod, includeIngredients, productsToRank.length, userContext);
 
     } catch (error) {
-      console.error('Critical error in main search service:', error);
+      Logger.error('Critical error in main search service', { error: error.message, query });
       // Final fallback to a very basic standard search in case of any unexpected error in the main flow
-      console.log('Critical error, attempting final fallback to basic standard search.');
+      Logger.debug('Critical error, attempting final fallback to basic standard search');
       try {
         return await this.standardSearch(query, options, await geminiService.parseQuery(query)); // Reparse if absolutely necessary
       } catch (fallbackError) {
-        console.error('Error in final fallback search:', fallbackError);
+        Logger.error('Error in final fallback search', { error: fallbackError.message });
         throw new Error('Search service temporarily unavailable. Please try again.');
       }
     }
@@ -228,12 +229,7 @@ class SearchService {
       let matchReason = '';
       
       if (product.match_reason) {
-        // For the top-ranked product (index 0), add special prefix
-        if (index === 0) {
-          matchReason = `Top pick for you! ${product.match_reason}`;
-        } else {
-          matchReason = product.match_reason;
-        }
+        matchReason = product.match_reason;
       } else {
         // Fallback to SQL metadata reason or generic reason
         if (searchMethod === 'ai-enhanced-sql' && sqlMetadata) {
@@ -380,7 +376,7 @@ class SearchService {
           : product.ingredients_extracted;
         return Array.isArray(extracted) ? extracted.map(ing => ({ name: ing.name, concentration: ing.concentration })) : [];
       } catch (e) {
-        console.warn('Failed to parse ingredients_extracted:', product.ingredients_extracted, e);
+        Logger.warn('Failed to parse ingredients_extracted', { error: e.message });
         return [];
       }
     }
@@ -402,7 +398,7 @@ class SearchService {
       if (error) throw error;
       return ingredients.map(ing => ({ ingredient: ing.display_name, highlight: ing.benefit_summary }));
     } catch (error) {
-      console.error('Error getting ingredient highlights:', error);
+      Logger.error('Error getting ingredient highlights', { error: error.message });
       return [];
     }
   }
@@ -411,7 +407,7 @@ class SearchService {
    * Standard search implementation (original)
    */
   async standardSearch(query, options, parsedQueryInput) {
-    console.log('Executing standardSearch method...');
+    Logger.debug('Executing standardSearch method');
     const parsedQuery = parsedQueryInput || await geminiService.parseQuery(query); // Parse only if not provided
     const products = await productService.searchProducts(parsedQuery, options.limit * 5);
     
@@ -482,7 +478,7 @@ class SearchService {
 
       return formattedProduct;
     } catch (error) {
-      console.error('Error getting product details:', error);
+      Logger.error('Error getting product details', { error: error.message, productId });
       throw new Error('Unable to fetch product details. Please try again.');
     }
   }
@@ -518,7 +514,7 @@ class SearchService {
         message: `Comparing ${formattedProducts.length} products`
       };
     } catch (error) {
-      console.error('Error comparing products:', error);
+      Logger.error('Error comparing products', { error: error.message, productIds });
       throw new Error('Unable to compare products. Please try again.');
     }
   }

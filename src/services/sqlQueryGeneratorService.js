@@ -1,6 +1,7 @@
 // src/services/sqlQueryGeneratorService.js - FIXED VERSION
 const { models } = require('../config/gemini');
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 class SQLQueryGeneratorService {
   constructor() {
@@ -23,12 +24,32 @@ class SQLQueryGeneratorService {
 
     // SQL injection prevention patterns
     this.dangerousPatterns = [
-      /;|--/g,  // Multiple statements or comments
-      /\b(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE|REPLACE|TRUNCATE)\b/i,
-      /\b(EXEC|EXECUTE|UNION|INTO|FILE|LOAD_FILE|OUTFILE|DUMPFILE)\b/i,
-      /\b(INFORMATION_SCHEMA|MYSQL|PERFORMANCE_SCHEMA)\b/i,
-      /\\/g,  // Escape characters
-      /\0|\'\'|\"\"/g  // Null bytes or repeated quotes
+      /\b(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|TRUNCATE|EXEC|EXECUTE)\b/i,
+      /--/,
+      /\/\*/,
+      /\*\//,
+      /;.*$/,
+      /\bunion\b.*\bselect\b/i,
+      /\bor\b.*=.*=/i
+    ];
+
+    // Valid table names for our schema
+    this.validTables = [
+      'products', 
+      'ingredients', 
+      'product_ingredients',
+      'product_video_mentions',
+      'yt_videos'
+    ];
+
+    // Valid column patterns
+    this.validColumns = [
+      'product_id', 'brand_name', 'product_name', 'category_path',
+      'price_mrp', 'price_sale', 'rating_avg', 'rating_count',
+      'skin_hair_type', 'ingredients_extracted', 'benefits_extracted',
+      'description_html', 'id', 'display_name', 'inci_name',
+      'concern_tags', 'safety_rating', 'is_hero', 'ingredient_id',
+      'position', 'video_id', 'title', 'channel_title'
     ];
   }
 
@@ -36,26 +57,26 @@ class SQLQueryGeneratorService {
    * Generate SQL query from natural language
    */
   async generateSQLQuery(userQuery, userSegment) {
-    const prompt = this.buildPrompt(userQuery, userSegment);
-    
     try {
+      const prompt = this.buildPrompt(userQuery, userSegment);
+      
       const result = await models.flash.generateContent(prompt);
       const response = result.response.text();
       
       // Extract SQL from response
-      const sqlMatch = response.match(/```sql\n([\s\S]*?)\n```/);
+      const sqlMatch = response.match(/```sql\s*([\s\S]*?)\s*```/);
       if (!sqlMatch) {
-        throw new Error('No valid SQL found in response');
+        throw new Error('No SQL query found in response');
       }
       
       const sql = sqlMatch[1].trim();
       
       // Log the generated SQL before validation
-      console.log('Generated SQL (raw from model):', sql);
+      Logger.debug('Generated SQL (raw from model)', { sql });
 
       // Sanitize first, then validate
       const sanitizedSQL = this.sanitizeSQL(sql);
-      console.log('Generated SQL (post-sanitization):', sanitizedSQL);
+      Logger.debug('Generated SQL (post-sanitization)', { sql: sanitizedSQL });
       this.validateSQL(sanitizedSQL); 
       
       // Extract metadata from response
@@ -67,7 +88,7 @@ class SQLQueryGeneratorService {
         confidence: metadata.confidence || 0.8
       };
     } catch (error) {
-      console.error('Error generating SQL:', error);
+      Logger.error('Error generating SQL', { error: error.message, userQuery });
       throw error;
     }
   }
@@ -355,25 +376,25 @@ METADATA:
 
       if (rpcError) {
         // Log the RPC error and proceed to fallback
-        console.warn(`RPC 'exec_sql' failed with error: ${rpcError.message}. Falling back.`);
+        Logger.warn(`RPC 'exec_sql' failed with error: ${rpcError.message}. Falling back.`);
         return await this.executeFallbackQuery(sql);
       }
       // If RPC succeeded:
-      console.log("RPC 'exec_sql' executed successfully.");
+      Logger.debug("RPC 'exec_sql' executed successfully");
       return data;
 
     } catch (exceptionDuringRpc) {
       // This catch handles exceptions if supabase.rpc itself throws (e.g. RPC doesn't exist and client throws, network issues)
-      console.warn(`Exception during RPC 'exec_sql' invocation: ${exceptionDuringRpc.message}. Falling back.`);
+      Logger.warn(`Exception during RPC 'exec_sql' invocation: ${exceptionDuringRpc.message}. Falling back.`);
       return await this.executeFallbackQuery(sql, exceptionDuringRpc);
     }
   }
 
   async executeFallbackQuery(originalSql, rpcException = null) {
     if (rpcException) {
-      console.log('Executing fallback query due to RPC exception.');
+      Logger.debug('Executing fallback query due to RPC exception');
     } else {
-      console.log('Executing fallback query due to RPC error response.');
+      Logger.debug('Executing fallback query due to RPC error response');
     }
     
     // The existing fallback in the problematic code was a generic product list.
@@ -385,13 +406,13 @@ METADATA:
         .limit(20);
       
       if (fallbackError) {
-        console.error('Error executing fallback query:', fallbackError);
+        Logger.error('Error executing fallback query', { error: fallbackError.message });
         throw new Error(`Failed to execute search query (fallback also failed): ${fallbackError.message}`);
       }
-      console.log("Fallback query executed successfully.");
+      Logger.debug("Fallback query executed successfully");
       return products;
     } catch (e) {
-      console.error('Exception in fallback query execution logic:', e);
+      Logger.error('Exception in fallback query execution logic', { error: e.message });
       throw new Error(`Failed to execute search query (exception in fallback logic): ${e.message}`);
     }
   }
@@ -417,8 +438,8 @@ class EnhancedSearchService {
         basicParsing.userSegment
       );
 
-      console.log('Generated SQL:', sql);
-      console.log('Metadata:', metadata);
+      Logger.debug('Generated SQL', { sql });
+      Logger.debug('Metadata', metadata);
 
       // Step 3: Execute query if confidence is high
       if (confidence > 0.7) {
@@ -445,7 +466,7 @@ class EnhancedSearchService {
       };
 
     } catch (error) {
-      console.error('Error in enhanced search:', error);
+      Logger.error('Error in enhanced search', { error: error.message });
       throw error; // Let the main service handle fallback
     }
   }
@@ -504,7 +525,7 @@ class EnhancedSearchService {
 
       return result;
     } catch (error) {
-      console.error('Query execution failed:', error);
+      Logger.error('Query execution failed', { error: error.message });
       return null;
     }
   }

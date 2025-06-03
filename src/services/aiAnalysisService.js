@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const supabase = require('../config/database');
 const AIAnalysisCacheService = require('./aiAnalysisCacheService');
+const Logger = require('../utils/logger');
 
 class AIAnalysisService {
   constructor() {
@@ -14,7 +15,7 @@ class AIAnalysisService {
    */
   async analyzeProfileData(userId, analysisType, profileData, triggerSource = 'profile_update') {
     try {
-      console.log(`🔍 Starting AI analysis for user ${userId}, type: ${analysisType}`);
+      Logger.info(`Starting AI analysis for user ${userId}`, { analysisType });
       
       // Get comprehensive user profile for context first
       const userContext = await this.getUserContext(userId);
@@ -27,7 +28,7 @@ class AIAnalysisService {
         { ...profileData, userContext }, 
         async () => {
           // This function will only be called if cache miss
-          console.log(`🤖 Generating new ${analysisType} analysis (cache miss)`);
+          Logger.info(`Generating new ${analysisType} analysis`, { reason: 'cache_miss' });
           
           // Create analysis session only if generating new analysis
           const session = await this.createAnalysisSession(userId, 'profile_update', `${analysisType}_profile_update`);
@@ -74,7 +75,7 @@ class AIAnalysisService {
       
       // If from cache, we still want to provide a session-like response
       if (analysisResult.fromCache) {
-        console.log(`✅ AI analysis retrieved from cache for user ${userId} (${analysisType})`);
+        Logger.info(`AI analysis retrieved from cache for user ${userId}`, { analysisType });
         return {
           ...analysisResult.data,
           fromCache: true,
@@ -82,7 +83,7 @@ class AIAnalysisService {
         };
       }
       
-      console.log(`✅ AI analysis completed for user ${userId}, generated new analysis`);
+      Logger.info(`AI analysis completed for user ${userId}`, { generated: 'new_analysis' });
       return {
         ...analysisResult.data,
         fromCache: false,
@@ -90,7 +91,7 @@ class AIAnalysisService {
       };
       
     } catch (error) {
-      console.error('AI Analysis Service Error:', error);
+      Logger.error('AI Analysis Service Error', { error: error.message });
       throw error;
     }
   }
@@ -102,7 +103,7 @@ class AIAnalysisService {
     const analyses = [];
     
     // Single comprehensive skin analysis instead of multiple calls
-    console.log('🤖 Performing single comprehensive skin analysis...');
+    Logger.debug('Performing single comprehensive skin analysis');
     
     const comprehensiveAnalysis = await this.performAIAnalysis({
       type: 'comprehensive_skin_analysis',
@@ -116,7 +117,7 @@ class AIAnalysisService {
       userId, 'skin', 'comprehensive_analysis', skinData, comprehensiveAnalysis, sessionId
     ));
     
-    console.log('✅ Comprehensive skin analysis completed');
+    Logger.debug('Comprehensive skin analysis completed');
     return analyses;
   }
 
@@ -124,7 +125,7 @@ class AIAnalysisService {
    * CONSOLIDATED Skin Profile Analysis - Single comprehensive AI call
    */
   async analyzeSkinProfileConsolidated(userId, skinData, userContext, sessionId) {
-    console.log('🤖 Performing consolidated skin profile analysis...');
+    Logger.debug('Performing consolidated skin profile analysis');
     
     // Single comprehensive analysis combining all aspects
     const analysis = await this.performAIAnalysis({
@@ -142,7 +143,7 @@ class AIAnalysisService {
       userId, 'skin', 'consolidated_analysis', skinData, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated skin analysis completed');
+    Logger.debug('Consolidated skin analysis completed');
     return [analysisResult];
   }
 
@@ -152,7 +153,7 @@ class AIAnalysisService {
   async analyzeHairProfile(userId, hairData, userContext, sessionId) {
     const analyses = [];
     
-    console.log('🤖 Performing comprehensive hair analysis...');
+    Logger.debug('Performing comprehensive hair analysis');
     
     const comprehensiveAnalysis = await this.performAIAnalysis({
       type: 'comprehensive_hair_analysis',
@@ -165,7 +166,7 @@ class AIAnalysisService {
       userId, 'hair', 'comprehensive_analysis', hairData, comprehensiveAnalysis, sessionId
     ));
     
-    console.log('✅ Comprehensive hair analysis completed');
+    Logger.debug('Comprehensive hair analysis completed');
     return analyses;
   }
 
@@ -173,7 +174,7 @@ class AIAnalysisService {
    * CONSOLIDATED Hair Profile Analysis - Single comprehensive AI call
    */
   async analyzeHairProfileConsolidated(userId, hairData, userContext, sessionId) {
-    console.log('🤖 Performing consolidated hair profile analysis...');
+    Logger.debug('Performing consolidated hair profile analysis');
     
     const analysis = await this.performAIAnalysis({
       type: 'consolidated_hair_analysis',
@@ -188,7 +189,7 @@ class AIAnalysisService {
       userId, 'hair', 'consolidated_analysis', hairData, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated hair analysis completed');
+    Logger.debug('Consolidated hair analysis completed');
     return [analysisResult];
   }
 
@@ -198,7 +199,7 @@ class AIAnalysisService {
   async analyzeLifestyleProfile(userId, lifestyleData, userContext, sessionId) {
     const analyses = [];
     
-    console.log('🤖 Performing comprehensive lifestyle analysis...');
+    Logger.debug('Performing comprehensive lifestyle analysis');
     
     const comprehensiveAnalysis = await this.performAIAnalysis({
       type: 'comprehensive_lifestyle_analysis',
@@ -211,7 +212,7 @@ class AIAnalysisService {
       userId, 'lifestyle', 'comprehensive_analysis', lifestyleData, comprehensiveAnalysis, sessionId
     ));
     
-    console.log('✅ Comprehensive lifestyle analysis completed');
+    Logger.debug('Comprehensive lifestyle analysis completed');
     return analyses;
   }
 
@@ -219,7 +220,7 @@ class AIAnalysisService {
    * CONSOLIDATED Lifestyle Profile Analysis - Single comprehensive AI call
    */
   async analyzeLifestyleProfileConsolidated(userId, lifestyleData, userContext, sessionId) {
-    console.log('🤖 Performing consolidated lifestyle profile analysis...');
+    Logger.debug('Performing consolidated lifestyle profile analysis');
     
     const analysis = await this.performAIAnalysis({
       type: 'consolidated_lifestyle_analysis',
@@ -234,7 +235,7 @@ class AIAnalysisService {
       userId, 'lifestyle', 'consolidated_analysis', lifestyleData, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated lifestyle analysis completed');
+    Logger.debug('Consolidated lifestyle analysis completed');
     return [analysisResult];
   }
 
@@ -244,7 +245,7 @@ class AIAnalysisService {
   async analyzeHealthProfile(userId, healthData, userContext, sessionId) {
     const analyses = [];
     
-    console.log('🤖 Performing comprehensive health analysis...');
+    Logger.debug('Performing comprehensive health analysis');
     
     const comprehensiveAnalysis = await this.performAIAnalysis({
       type: 'comprehensive_health_analysis',
@@ -257,7 +258,7 @@ class AIAnalysisService {
       userId, 'health', 'comprehensive_analysis', healthData, comprehensiveAnalysis, sessionId
     ));
     
-    console.log('✅ Comprehensive health analysis completed');
+    Logger.debug('Comprehensive health analysis completed');
     return analyses;
   }
 
@@ -265,7 +266,7 @@ class AIAnalysisService {
    * CONSOLIDATED Health Profile Analysis - Single comprehensive AI call
    */
   async analyzeHealthProfileConsolidated(userId, healthData, userContext, sessionId) {
-    console.log('🤖 Performing consolidated health profile analysis...');
+    Logger.debug('Performing consolidated health profile analysis');
     
     const analysis = await this.performAIAnalysis({
       type: 'consolidated_health_analysis',
@@ -280,7 +281,7 @@ class AIAnalysisService {
       userId, 'health', 'consolidated_analysis', healthData, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated health analysis completed');
+    Logger.debug('Consolidated health analysis completed');
     return [analysisResult];
   }
 
@@ -290,7 +291,7 @@ class AIAnalysisService {
   async analyzeMakeupProfile(userId, makeupData, userContext, sessionId) {
     const analyses = [];
     
-    console.log('🤖 Performing comprehensive makeup analysis...');
+    Logger.debug('Performing comprehensive makeup analysis');
     
     const comprehensiveAnalysis = await this.performAIAnalysis({
       type: 'comprehensive_makeup_analysis',
@@ -303,7 +304,7 @@ class AIAnalysisService {
       userId, 'makeup', 'comprehensive_analysis', makeupData, comprehensiveAnalysis, sessionId
     ));
     
-    console.log('✅ Comprehensive makeup analysis completed');
+    Logger.debug('Comprehensive makeup analysis completed');
     return analyses;
   }
 
@@ -311,7 +312,7 @@ class AIAnalysisService {
    * CONSOLIDATED Makeup Profile Analysis - Single comprehensive AI call
    */
   async analyzeMakeupProfileConsolidated(userId, makeupData, userContext, sessionId) {
-    console.log('🤖 Performing consolidated makeup profile analysis...');
+    Logger.debug('Performing consolidated makeup profile analysis');
     
     const analysis = await this.performAIAnalysis({
       type: 'consolidated_makeup_analysis',
@@ -326,7 +327,7 @@ class AIAnalysisService {
       userId, 'makeup', 'consolidated_analysis', makeupData, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated makeup analysis completed');
+    Logger.debug('Consolidated makeup analysis completed');
     return [analysisResult];
   }
 
@@ -355,7 +356,7 @@ class AIAnalysisService {
    * CONSOLIDATED Comprehensive Analysis - Single comprehensive AI call across all profile data
    */
   async performComprehensiveAnalysisConsolidated(userId, userContext, sessionId) {
-    console.log('🤖 Performing consolidated comprehensive analysis...');
+    Logger.debug('Performing consolidated comprehensive analysis');
     
     const analysis = await this.performAIAnalysis({
       type: 'consolidated_comprehensive_analysis',
@@ -370,7 +371,7 @@ class AIAnalysisService {
       userId, 'comprehensive', 'consolidated_analysis', userContext, parsedAnalysis, sessionId
     );
     
-    console.log('✅ Consolidated comprehensive analysis completed');
+    Logger.debug('Consolidated comprehensive analysis completed');
     return [analysisResult];
   }
 
@@ -383,12 +384,12 @@ class AIAnalysisService {
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔄 AI Analysis attempt ${attempt}/${maxRetries} for ${type}`);
+        Logger.debug(`AI Analysis attempt ${attempt}/${maxRetries} for ${type}`);
         
         // Add delay between API calls to respect rate limits
         if (attempt > 1) {
           const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
-          console.log(`⏳ Waiting ${delay}ms before retry...`);
+          Logger.debug(`Waiting ${delay}ms before retry`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
         
@@ -408,7 +409,7 @@ class AIAnalysisService {
         try {
           structuredResult = JSON.parse(cleanJson);
         } catch (parseError) {
-          console.warn(`Failed to parse AI response as JSON: ${parseError.message}`);
+          Logger.warn(`Failed to parse AI response as JSON`, { error: parseError.message });
           structuredResult = {
             analysis: analysisText,
             confidence: 0.8,
@@ -418,7 +419,7 @@ class AIAnalysisService {
           };
         }
         
-        console.log(`✅ AI Analysis successful for ${type} on attempt ${attempt}`);
+        Logger.debug(`AI Analysis successful for ${type} on attempt ${attempt}`);
         return {
           ...structuredResult,
           model: 'gemini-2.0-flash',
@@ -427,19 +428,19 @@ class AIAnalysisService {
         };
         
       } catch (error) {
-        console.error(`❌ AI Analysis Error for ${type} (attempt ${attempt}):`, error.message);
+        Logger.error(`AI Analysis Error for ${type} (attempt ${attempt})`, { error: error.message });
         
         // If it's a rate limit error and we have retries left, continue
         if (error.status === 429 && attempt < maxRetries) {
           const retryDelay = error.errorDetails?.[2]?.retryDelay || '5s';
           const delayMs = retryDelay.includes('s') ? parseInt(retryDelay) * 1000 : 5000;
-          console.log(`🕒 Rate limited. Waiting ${delayMs}ms before retry...`);
+          Logger.warn(`Rate limited. Waiting ${delayMs}ms before retry`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
           continue;
         }
         
         // If we've exhausted retries or it's not a rate limit error, return fallback
-        console.warn(`⚠️  AI Analysis failed for ${type} after ${attempt} attempts. Using fallback.`);
+        Logger.warn(`AI Analysis failed for ${type} after ${attempt} attempts. Using fallback.`);
         return this.generateFallbackAnalysis(type, data, context);
       }
     }
@@ -449,7 +450,7 @@ class AIAnalysisService {
    * Generate fallback analysis when AI service is unavailable
    */
   generateFallbackAnalysis(type, data, context) {
-    console.log(`📝 Generating fallback analysis for ${type}`);
+    Logger.info(`Generating fallback analysis for ${type}`);
     
     const fallbackInsights = [
       "Profile data has been recorded successfully",
@@ -1415,7 +1416,7 @@ Provide holistic beauty and wellness analysis across all aspects:
    * Cache management methods
    */
   async invalidateUserAnalysisCache(userId, analysisType = null) {
-    console.log(`🗑️ Invalidating analysis cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
+    Logger.info(`Invalidating analysis cache for user ${userId}`, { analysisType });
     await this.cacheService.invalidateCache(userId, analysisType);
   }
 
@@ -1424,7 +1425,7 @@ Provide holistic beauty and wellness analysis across all aspects:
   }
 
   async cleanupExpiredCache() {
-    console.log('🧹 Cleaning up expired analysis cache entries...');
+    Logger.info('Cleaning up expired analysis cache entries');
     await this.cacheService.cleanupExpiredCache();
   }
 

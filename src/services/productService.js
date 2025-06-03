@@ -1,4 +1,5 @@
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 class ProductService {
   /**
@@ -78,7 +79,7 @@ class ProductService {
         const { data: fallbackProducts, error } = await query.limit(limit);
 
         if (error) {
-          console.error('Error searching products:', error);
+          Logger.error('Error searching products', { error: error.message });
           return [];
         }
 
@@ -95,7 +96,7 @@ class ProductService {
 
       return products;
     } catch (error) {
-      console.error('Error in searchProducts:', error);
+      Logger.error('Error in searchProducts', { error: error.message });
       return [];
     }
   }
@@ -112,7 +113,7 @@ class ProductService {
         .or(`display_name.ilike.%${parsedQuery.ingredient}%,inci_name.ilike.%${parsedQuery.ingredient}%`);
 
       if (ingredientError || !ingredients || ingredients.length === 0) {
-        console.log('No matching ingredients found for:', parsedQuery.ingredient);
+        Logger.debug('No matching ingredients found for', { ingredient: parsedQuery.ingredient });
         return [];
       }
 
@@ -125,7 +126,7 @@ class ProductService {
         .in('ingredient_id', ingredientIds);
 
       if (piError || !productIngredients || productIngredients.length === 0) {
-        console.log('No products found with ingredient:', parsedQuery.ingredient);
+        Logger.debug('No products found with ingredient', { ingredient: parsedQuery.ingredient });
         return [];
       }
 
@@ -176,14 +177,14 @@ class ProductService {
       const { data: products, error: productError } = await query;
 
       if (productError) {
-        console.error('Error fetching products by ingredient:', productError);
+        Logger.error('Error fetching products by ingredient', { error: productError.message });
         return [];
       }
 
-      console.log(`Found ${products?.length || 0} products with ingredient: ${parsedQuery.ingredient}`);
+      Logger.debug(`Found ${products?.length || 0} products with ingredient: ${parsedQuery.ingredient}`);
       return products || [];
     } catch (error) {
-      console.error('Error in searchByIngredientDatabase:', error);
+      Logger.error('Error in searchByIngredientDatabase', { error: error.message });
       return [];
     }
   }
@@ -226,13 +227,13 @@ class ProductService {
       const { data: ingredients, error } = await query;
 
       if (error) {
-        console.error('Error fetching ingredients:', error);
+        Logger.error('Error fetching ingredients', { error: error.message });
         return [];
       }
 
       return ingredients || [];
     } catch (error) {
-      console.error('Error in getRelevantIngredients:', error);
+      Logger.error('Error in getRelevantIngredients', { error: error.message });
       return [];
     }
   }
@@ -277,13 +278,13 @@ class ProductService {
         .single();
 
       if (error) {
-        console.error('Error fetching product details:', error);
+        Logger.error('Error fetching product details', { error: error.message, productId });
         return null;
       }
 
       return product;
     } catch (error) {
-      console.error('Error in getProductById:', error);
+      Logger.error('Error in getProductById', { error: error.message, productId });
       return null;
     }
   }
@@ -312,13 +313,13 @@ class ProductService {
         .in('product_id', productIds);
 
       if (error) {
-        console.error('Error fetching products for comparison:', error);
+        Logger.error('Error fetching products for comparison', { error: error.message, productIds });
         return [];
       }
 
       return products || [];
     } catch (error) {
-      console.error('Error in getProductsForComparison:', error);
+      Logger.error('Error in getProductsForComparison', { error: error.message, productIds });
       return [];
     }
   }

@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 // Helper function to generate JWT token
 const generateToken = (userId) => {
@@ -73,7 +74,7 @@ const register = async (req, res) => {
       .single();
 
     if (userError) {
-      console.error('User creation error:', userError);
+      Logger.error('User creation error', { error: userError.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to create user account'
@@ -100,7 +101,7 @@ const register = async (req, res) => {
       }]);
 
     if (sessionError) {
-      console.error('Session creation error:', sessionError);
+      Logger.error('Session creation error', { error: sessionError.message });
     }
 
     res.status(201).json({
@@ -114,7 +115,7 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
+    Logger.error('Registration error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error during registration'
@@ -171,7 +172,7 @@ const login = async (req, res) => {
       }]);
 
     if (sessionError) {
-      console.error('Session creation error:', sessionError);
+      Logger.error('Session creation error', { error: sessionError.message });
     }
 
     // Remove password from response
@@ -188,7 +189,7 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    Logger.error('Login error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error during login'
@@ -208,7 +209,7 @@ const logout = async (req, res) => {
       .eq('id', sessionId);
 
     if (error) {
-      console.error('Logout error:', error);
+      Logger.error('Logout error', { error: error.message });
     }
 
     res.status(200).json({
@@ -217,7 +218,7 @@ const logout = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Logout error:', error);
+    Logger.error('Logout error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error during logout'
@@ -247,7 +248,7 @@ const refreshToken = async (req, res) => {
       .eq('id', sessionId);
 
     if (error) {
-      console.error('Token refresh error:', error);
+      Logger.error('Token refresh error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to refresh token'
@@ -264,7 +265,7 @@ const refreshToken = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Token refresh error:', error);
+    Logger.error('Token refresh error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error during token refresh'
@@ -292,7 +293,7 @@ const getProfile = async (req, res) => {
       .single();
 
     if (profileError) {
-      console.error('Profile fetch error:', profileError);
+      Logger.error('Profile fetch error', { error: profileError.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch user profile'
@@ -308,7 +309,7 @@ const getProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get profile error:', error);
+    Logger.error('Get profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching profile'
@@ -344,7 +345,7 @@ const updateProfile = async (req, res) => {
       .single();
 
     if (updateError) {
-      console.error('Profile update error:', updateError);
+      Logger.error('Profile update error', { error: updateError.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update profile'
@@ -358,7 +359,7 @@ const updateProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update profile error:', error);
+    Logger.error('Update profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating profile'

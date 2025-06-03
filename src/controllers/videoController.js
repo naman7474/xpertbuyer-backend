@@ -1,4 +1,5 @@
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 /**
  * Helper function to parse video URL from database format
@@ -131,7 +132,7 @@ class VideoController {
       });
 
     } catch (error) {
-      console.error('Error fetching product videos:', error);
+      Logger.error('Error fetching product videos', { error: error.message });
       next(error);
     }
   }
@@ -215,7 +216,7 @@ class VideoController {
       });
 
     } catch (error) {
-      console.error('Error fetching videos summary:', error);
+      Logger.error('Error fetching videos summary', { error: error.message });
       next(error);
     }
   }

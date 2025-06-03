@@ -1,4 +1,5 @@
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 class UserContextService {
   /**
@@ -8,6 +9,12 @@ class UserContextService {
     try {
       // Get user profile with AI analysis
       const profile = await this.getUserCompleteProfile(userId);
+      
+      Logger.debug(`Getting user context for user ${userId}`, {
+        hasProfile: !!profile,
+        profileSections: profile ? Object.keys(profile).filter(key => Array.isArray(profile[key]) && profile[key].length > 0) : []
+      });
+      
       const latestAnalysis = await this.getLatestAIAnalysis(userId);
       const activeRecommendations = await this.getActiveRecommendations(userId);
       
@@ -18,7 +25,7 @@ class UserContextService {
         preferences: this.extractPreferences(profile, latestAnalysis)
       };
     } catch (error) {
-      console.error('Error getting user context:', error);
+      Logger.error('Error getting user context', { error: error.message, userId });
       return null;
     }
   }
@@ -42,7 +49,7 @@ class UserContextService {
       .single();
 
     if (error) {
-      console.error('Error fetching user profile:', error);
+      Logger.error('Error fetching user profile', { error: error.message, userId });
       return null;
     }
 
@@ -61,7 +68,7 @@ class UserContextService {
       .limit(10);
 
     if (error) {
-      console.error('Error fetching AI analysis:', error);
+      Logger.error('Error fetching AI analysis', { error: error.message, userId });
       return [];
     }
 
@@ -90,7 +97,7 @@ class UserContextService {
       .limit(20);
 
     if (error) {
-      console.error('Error fetching recommendations:', error);
+      Logger.error('Error fetching recommendations', { error: error.message, userId });
       return [];
     }
 
@@ -102,7 +109,22 @@ class UserContextService {
    */
   extractPreferences(profile, latestAnalysis) {
     if (!profile) {
-      return this.getDefaultPreferences();
+      Logger.warn('extractPreferences called with null profile. Returning default preferences');
+      // Return a default structure for preferences if profile is null
+      // to avoid errors in subsequent code that expects prefs.profileCompleteness etc.
+      return {
+        skin: { skinType: null, concerns: [], sensitivity: null, avoidIngredients: [] },
+        hair: { hairPattern: null, texture: null, concerns: [], avoidIngredients: [] },
+        lifestyle: {},
+        makeup: {},
+        priceRange: 'mid-range',
+        preferredIngredients: [],
+        avoidIngredients: [],
+        userSegment: 'Concern-Focused Novices',
+        profileCompleteness: 0, // Default to 0 if no profile
+        age: null,
+        gender: null
+      };
     }
 
     const skinProfile = profile.skin_profiles?.[0];
@@ -244,7 +266,7 @@ class UserContextService {
           });
         }
       } catch (error) {
-        console.error('Error parsing skin analysis for ingredients:', error);
+        Logger.error('Error parsing skin analysis for ingredients', { error: error.message });
       }
     }
 
@@ -260,7 +282,7 @@ class UserContextService {
           preferences.avoid.push(...(hairAnalysis.ingredient_recommendations.avoid || []));
         }
       } catch (error) {
-        console.error('Error parsing hair analysis for ingredients:', error);
+        Logger.error('Error parsing hair analysis for ingredients', { error: error.message });
       }
     }
 
@@ -322,9 +344,26 @@ class UserContextService {
       'makeup_preferences'
     ];
 
-    const completedSections = sections.filter(section => 
-      profile[section] && profile[section].length > 0
-    ).length;
+    const completedSections = sections.filter(section => {
+      const sectionData = profile[section];
+      
+      // Handle both array and object formats from Supabase
+      if (Array.isArray(sectionData)) {
+        return sectionData.length > 0;
+      } else if (sectionData && typeof sectionData === 'object') {
+        // If it's an object (not null), consider it filled
+        return true;
+      }
+      
+      return false;
+    }).length;
+
+    Logger.debug(`Profile completeness calculation: ${completedSections}/${sections.length} sections completed`);
+    sections.forEach(section => {
+      const sectionData = profile[section];
+      const isCompleted = Array.isArray(sectionData) ? sectionData.length > 0 : (sectionData && typeof sectionData === 'object');
+      Logger.debug(`${section}: ${isCompleted ? '✅ Completed' : '❌ Missing'} (${Array.isArray(sectionData) ? 'array' : typeof sectionData})`);
+    });
 
     return Math.round((completedSections / sections.length) * 100);
   }

@@ -8,67 +8,86 @@ const rateLimit = require('express-rate-limit');
 const apiRoutes = require('./routes/api');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const CacheCleanupService = require('./utils/cacheCleanupService');
+const Logger = require('./utils/logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
-
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.com'] // Replace with your frontend domain
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
-  credentials: true
+// Enhanced security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: process.env.NODE_ENV === 'production' ? {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  } : false
 }));
 
-// Rate limiting
+// CORS configuration with environment-based origins
+const getAllowedOrigins = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
+  }
+  return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+};
+
+app.use(cors({
+  origin: getAllowedOrigins(),
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Enhanced rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   message: {
     success: false,
     error: 'Too many requests',
     message: 'Too many requests from this IP, please try again later.'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for health checks in production
+    return process.env.NODE_ENV === 'production' && req.path === '/api/health';
+  }
 });
 
 app.use(limiter);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware with size limits
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Request logging in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-  });
-}
+// Request logging middleware
+app.use(Logger.request);
 
 // API routes
 app.use('/api', apiRoutes);
 
-// Root endpoint
+// Root endpoint - minimal in production
 app.get('/', (req, res) => {
-  res.json({
+  const response = {
     success: true,
-    message: 'Welcome to XpertBuyer API',
-    version: '1.0.0',
-    documentation: '/api/health',
-    endpoints: {
+    message: 'XpertBuyer API',
+    version: '1.0.0'
+  };
+
+  // Only show detailed endpoints in development
+  if (process.env.NODE_ENV !== 'production') {
+    response.documentation = '/api/health';
+    response.endpoints = {
       search: 'POST /api/search',
       productDetails: 'GET /api/products/:productId',
       compare: 'POST /api/compare',
       productVideos: 'GET /api/products/:productId/videos',
       videosSummary: 'GET /api/videos/products-summary?productIds=id1,id2,id3',
       health: 'GET /api/health'
-    }
-  });
+    };
+  }
+
+  res.json(response);
 });
 
 // Error handling
@@ -78,43 +97,76 @@ app.use(errorHandler);
 // Initialize cache cleanup service
 const cacheCleanupService = new CacheCleanupService();
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 XpertBuyer API server running on port ${PORT}`);
-  console.log(`📚 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  
-  // Validate environment variables
-  const requiredEnvVars = ['GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY'];
+// Environment variable validation
+const validateEnvironment = () => {
+  const requiredEnvVars = ['GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
   if (missingVars.length > 0) {
-    console.warn(`⚠️  Missing environment variables: ${missingVars.join(', ')}`);
-    console.warn('Please check your .env file');
-  } else {
-    console.log('✅ All required environment variables are set');
+    Logger.error('Missing required environment variables', { missingVars });
+    process.exit(1);
   }
   
-  // Start cache cleanup service
-  try {
-    cacheCleanupService.startPeriodicCleanup(6); // Clean up every 6 hours
-    console.log('🧹 Cache cleanup service initialized');
-  } catch (error) {
-    console.warn('⚠️  Cache cleanup service failed to start:', error.message);
+  // Validate JWT secret strength in production
+  if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32) {
+    Logger.error('JWT_SECRET must be at least 32 characters in production');
+    process.exit(1);
   }
-});
+  
+  Logger.info('Environment validation passed');
+};
+
+// Start server
+const startServer = () => {
+  try {
+    validateEnvironment();
+    
+    app.listen(PORT, () => {
+      Logger.info(`XpertBuyer API server running on port ${PORT}`, {
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT
+      });
+      
+      // Start cache cleanup service
+      try {
+        cacheCleanupService.startPeriodicCleanup(6);
+        Logger.info('Cache cleanup service initialized');
+      } catch (error) {
+        Logger.warn('Cache cleanup service failed to start', { error: error.message });
+      }
+    });
+  } catch (error) {
+    Logger.error('Failed to start server', { error: error.message });
+    process.exit(1);
+  }
+};
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+const gracefulShutdown = (signal) => {
+  Logger.info(`${signal} received, shutting down gracefully`);
+  
   cacheCleanupService.stopPeriodicCleanup();
-  process.exit(0);
+  
+  // Give the server time to finish existing requests
+  setTimeout(() => {
+    process.exit(0);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  Logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+  process.exit(1);
 });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  cacheCleanupService.stopPeriodicCleanup();
-  process.exit(0);
+process.on('unhandledRejection', (reason, promise) => {
+  Logger.error('Unhandled promise rejection', { reason, promise });
+  process.exit(1);
 });
+
+startServer();
 
 module.exports = app; 

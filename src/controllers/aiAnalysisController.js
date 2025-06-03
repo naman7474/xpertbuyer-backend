@@ -1,6 +1,7 @@
 const aiAnalysisService = require('../services/aiAnalysisService');
 const supabase = require('../config/database');
 const CacheCleanupService = require('../utils/cacheCleanupService');
+const Logger = require('../utils/logger');
 
 const aiAnalysisController = {
   /**
@@ -10,7 +11,7 @@ const aiAnalysisController = {
     try {
       const userId = req.user.id;
       
-      console.log(`🤖 Triggering comprehensive AI analysis for user ${userId}`);
+      Logger.info(`Triggering comprehensive AI analysis for user ${userId}`);
       
       const analysisResult = await aiAnalysisService.analyzeProfileData(
         userId, 
@@ -26,7 +27,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Comprehensive analysis error:', error);
+      Logger.error('Comprehensive analysis error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to perform comprehensive analysis',
@@ -52,7 +53,7 @@ const aiAnalysisController = {
         });
       }
       
-      console.log(`🔍 Triggering ${category} AI analysis for user ${userId}`);
+      Logger.info(`Triggering ${category} AI analysis for user ${userId}`);
       
       const analysisResult = await aiAnalysisService.analyzeProfileData(
         userId, 
@@ -68,7 +69,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error(`${req.params.category} analysis error:`, error);
+      Logger.error(`${req.params.category} analysis error`, { error: error.message });
       res.status(500).json({
         success: false,
         message: `Failed to perform ${req.params.category} analysis`,
@@ -101,7 +102,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get analysis history error:', error);
+      Logger.error('Get analysis history error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve analysis history',
@@ -142,7 +143,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get recommendations error:', error);
+      Logger.error('Get recommendations error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve recommendations',
@@ -182,7 +183,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get analysis result error:', error);
+      Logger.error('Get analysis result error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve analysis result',
@@ -233,7 +234,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get analysis dashboard error:', error);
+      Logger.error('Get analysis dashboard error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve analysis dashboard',
@@ -278,7 +279,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Mark recommendation completed error:', error);
+      Logger.error('Mark recommendation completed error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to update recommendation',
@@ -334,7 +335,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get insights summary error:', error);
+      Logger.error('Get insights summary error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve insights summary',
@@ -377,7 +378,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Get cache statistics error:', error);
+      Logger.error('Get cache statistics error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve cache statistics',
@@ -406,7 +407,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Invalidate user cache error:', error);
+      Logger.error('Invalidate user cache error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to invalidate user cache',
@@ -445,7 +446,7 @@ const aiAnalysisController = {
       });
       
     } catch (error) {
-      console.error('Invalidate user cache by type error:', error);
+      Logger.error('Invalidate user cache by type error', { error: error.message });
       res.status(500).json({
         success: false,
         message: 'Failed to invalidate user cache by type',

@@ -1,5 +1,6 @@
 const { models } = require('../config/gemini');
 const { USER_SEGMENTS, INTENT_TYPES } = require('../constants/userSegments');
+const Logger = require('../utils/logger');
 
 class GeminiService {
   /**
@@ -52,7 +53,7 @@ Guidelines:
       
       return parsedData;
     } catch (error) {
-      console.error('Error parsing query with Gemini:', error);
+      Logger.error('Error parsing query with Gemini', { error: error.message });
       // Return a fallback structure
       return {
         intent: INTENT_TYPES.TREATMENT_SEARCH,
@@ -197,25 +198,45 @@ Return ONLY a JSON array with this structure:
 [
   {
     "productIndex": 3,
-    "matchReason": "Specific reason why this product is perfect for the user's needs"
+    "matchReason": "Natural, user-friendly reason why this product is perfect for them"
   },
   {
-    "productIndex": 1,
-    "matchReason": "Specific reason for this product's relevance"
+    "productIndex": 1,  
+    "matchReason": "Friendly explanation for this product's relevance"
   }
 ]
 
-For each product, provide a concise (50-100 characters) reason that explains:
-- How it addresses their specific concern/skin type
-- Why specific ingredients are beneficial for them
-- Why it's ranked at this position
-- What makes it suitable for their user segment
+For each product, provide a natural, conversational reason (40-80 characters) that sounds like friendly advice:
 
-Example reasons:
-- "SPF 50+ protection perfect for oily, sensitive skin with zinc oxide"
-- "Contains niacinamide for oil control and ceramides for barrier repair"
-- "Gentle formula ideal for sensitive skin with no harsh actives"
-- "Premium retinol serum with bakuchiol for anti-aging benefits"
+${personalizationContext ? `
+For personalized users, create friendly messages that reference their specific profile:
+- Use their skin type naturally: "Perfect for your oily skin"
+- Reference their concerns: "Great for tackling acne" 
+- Mention preferred ingredients: "Has your favorite niacinamide"
+- Sound encouraging: "Ideal choice for you", "Perfect match"
+- Be specific but warm: "Gentle on sensitive skin like yours"
+
+For the #1 ranked product, make it sound especially recommended and personal.
+` : `
+For non-personalized users, create friendly general messages:
+- "Highly recommended choice"
+- "Great for your skin concern"  
+- "Popular and effective option"
+- "Well-reviewed product"
+`}
+
+Example personalized reasons:
+- "Perfect for your oily, acne-prone skin!"
+- "Has niacinamide - your preferred ingredient"
+- "Gentle formula ideal for sensitive skin like yours"
+- "Great anti-aging choice for your age group"
+- "Matches your ingredient-conscious preferences"
+
+Example general reasons:
+- "Highly rated for acne-prone skin"
+- "Popular choice with great reviews"
+- "Effective for oil control"
+- "Well-formulated anti-aging option"
 `;
 
     try {
@@ -254,7 +275,7 @@ Example reasons:
       
       return rankedProducts;
     } catch (error) {
-      console.error('Error ranking products with Gemini:', error);
+      Logger.error('Error ranking products with Gemini', { error: error.message });
       // Fallback: return products sorted by rating with generic reasons
       return products
         .sort((a, b) => (parseFloat(b.rating_avg) || 0) - (parseFloat(a.rating_avg) || 0))
@@ -299,7 +320,7 @@ Return as JSON array:
       const jsonMatch = response.match(/\[[\s\S]*?\]/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch (error) {
-      console.error('Error generating ingredient highlights:', error);
+      Logger.error('Error generating ingredient highlights', { error: error.message });
       return [];
     }
   }

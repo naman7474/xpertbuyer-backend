@@ -4,6 +4,7 @@ const router = express.Router();
 const searchController = require('../controllers/searchController');
 const videoController = require('../controllers/videoController');
 const { validateSearch, validateProductDetails, validateCompareProducts, validateProductVideos, validateVideosSummary } = require('../middleware/validation');
+const { optionalAuth } = require('../middleware/auth');
 
 // Import route modules
 const authRoutes = require('./authRoutes');
@@ -26,8 +27,8 @@ router.use('/activity', activityRoutes);
 // AI analysis routes
 router.use('/ai', aiAnalysisRoutes);
 
-// Search products
-router.post('/search', validateSearch, searchController.search);
+// Search products - with optional authentication for personalization
+router.post('/search', optionalAuth, validateSearch, searchController.search);
 
 // Get product details
 router.get('/products/:productId', validateProductDetails, searchController.getProductDetails);

@@ -1,4 +1,5 @@
 const AIAnalysisCacheService = require('../services/aiAnalysisCacheService');
+const Logger = require('./logger');
 
 class CacheCleanupService {
   constructor() {
@@ -11,14 +12,14 @@ class CacheCleanupService {
    */
   startPeriodicCleanup(intervalHours = 6) {
     if (this.isRunning) {
-      console.log('🔄 Cache cleanup service is already running');
+      Logger.info('Cache cleanup service is already running');
       return;
     }
 
     this.isRunning = true;
     const intervalMs = intervalHours * 60 * 60 * 1000; // Convert hours to milliseconds
 
-    console.log(`🚀 Starting cache cleanup service (every ${intervalHours} hours)`);
+    Logger.info(`Starting cache cleanup service (every ${intervalHours} hours)`);
     
     // Run initial cleanup
     this.performCleanup();
@@ -34,7 +35,7 @@ class CacheCleanupService {
    */
   stopPeriodicCleanup() {
     if (!this.isRunning) {
-      console.log('🛑 Cache cleanup service is not running');
+      Logger.debug('Cache cleanup service is not running');
       return;
     }
 
@@ -44,7 +45,7 @@ class CacheCleanupService {
       this.cleanupInterval = null;
     }
     
-    console.log('🛑 Cache cleanup service stopped');
+    Logger.info('Cache cleanup service stopped');
   }
 
   /**
@@ -52,7 +53,7 @@ class CacheCleanupService {
    */
   async performCleanup() {
     try {
-      console.log('🧹 Starting cache cleanup...');
+      Logger.debug('Starting cache cleanup...');
       
       // Get statistics before cleanup
       const statsBefore = await this.cacheService.getCacheStats();
@@ -64,15 +65,15 @@ class CacheCleanupService {
       const statsAfter = await this.cacheService.getCacheStats();
       
       const cleaned = statsBefore ? statsBefore.expired : 0;
-      console.log(`✅ Cache cleanup completed. Removed ${cleaned} expired entries`);
+      Logger.info(`Cache cleanup completed. Removed ${cleaned} expired entries`);
       
-      // Log current cache status
+      // Log current cache status in debug mode
       if (statsAfter) {
-        console.log(`📊 Cache status: ${statsAfter.active} active, ${statsAfter.total} total entries`);
+        Logger.debug(`Cache status: ${statsAfter.active} active, ${statsAfter.total} total entries`);
       }
       
     } catch (error) {
-      console.error('❌ Cache cleanup error:', error);
+      Logger.error('Cache cleanup error', { error: error.message });
     }
   }
 
@@ -108,7 +109,7 @@ class CacheCleanupService {
 
       return report;
     } catch (error) {
-      console.error('Cache statistics error:', error);
+      Logger.error('Cache statistics error', { error: error.message });
       return { error: error.message };
     }
   }
@@ -118,11 +119,11 @@ class CacheCleanupService {
    */
   async cleanupUserCache(userId, analysisType = null) {
     try {
-      console.log(`🗑️ Cleaning up cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
+      Logger.debug(`Cleaning up cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
       await this.cacheService.invalidateCache(userId, analysisType);
-      console.log('✅ User cache cleanup completed');
+      Logger.debug('User cache cleanup completed');
     } catch (error) {
-      console.error('User cache cleanup error:', error);
+      Logger.error('User cache cleanup error', { error: error.message, userId, analysisType });
       throw error;
     }
   }
@@ -131,11 +132,11 @@ class CacheCleanupService {
    * Warm up cache for critical users (optional optimization)
    */
   async warmupCache(userIds = []) {
-    console.log(`🔥 Starting cache warmup for ${userIds.length} users...`);
+    Logger.debug(`Starting cache warmup for ${userIds.length} users...`);
     
     // This would trigger analysis for high-priority users
     // Implementation depends on business logic
-    console.log('Cache warmup completed');
+    Logger.debug('Cache warmup completed');
   }
 
   /**

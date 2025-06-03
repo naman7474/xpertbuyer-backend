@@ -1,16 +1,14 @@
-const crypto = require('crypto');
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 class AIAnalysisCacheService {
   constructor() {
-    this.defaultTTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    this.cacheTTLs = {
-      'skin_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days for skin analysis
-      'hair_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days for hair analysis
-      'lifestyle_analysis': 3 * 24 * 60 * 60 * 1000, // 3 days for lifestyle
-      'health_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days for health
-      'makeup_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days for makeup
-      'comprehensive_analysis': 12 * 60 * 60 * 1000, // 12 hours for comprehensive
+    this.defaultTTL = {
+      'skin_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days
+      'hair_analysis': 7 * 24 * 60 * 60 * 1000, // 7 days
+      'lifestyle_analysis': 30 * 24 * 60 * 60 * 1000, // 30 days
+      'product_recommendations': 24 * 60 * 60 * 1000, // 1 day
+      'default': 24 * 60 * 60 * 1000 // 1 day
     };
   }
 
@@ -21,12 +19,12 @@ class AIAnalysisCacheService {
     try {
       const cacheKey = this.generateCacheKey(userId, analysisType, profileData);
       
-      console.log(`🔍 Checking cache for user ${userId}, analysis type: ${analysisType}`);
+      Logger.debug(`Checking cache for user ${userId}, analysis type: ${analysisType}`);
       
       // Check cache first
       const cached = await this.getFromCache(cacheKey);
       if (cached && !this.isExpired(cached)) {
-        console.log(`✅ Cache hit for ${analysisType} analysis`);
+        Logger.debug(`Cache hit for ${analysisType} analysis`);
         await this.updateCacheAccess(cached.id);
         return {
           fromCache: true,
@@ -39,7 +37,7 @@ class AIAnalysisCacheService {
         };
       }
       
-      console.log(`❌ Cache miss for ${analysisType} analysis - generating new analysis`);
+      Logger.debug(`Cache miss for ${analysisType} analysis - generating new analysis`);
       
       // Generate new analysis
       const analysis = await generateFunction();
@@ -58,7 +56,7 @@ class AIAnalysisCacheService {
       };
       
     } catch (error) {
-      console.error('Cache service error:', error);
+      Logger.error('Cache service error', { error: error.message, userId, analysisType });
       // If cache fails, still try to generate analysis
       const analysis = await generateFunction();
       return {
@@ -71,19 +69,16 @@ class AIAnalysisCacheService {
   }
 
   /**
-   * Generate a unique cache key based on user, analysis type, and profile data
+   * Generate cache key based on user and profile data
    */
   generateCacheKey(userId, analysisType, profileData) {
-    const dataHash = this.hashData(profileData);
-    return `${userId}:${analysisType}:${dataHash}`;
-  }
-
-  /**
-   * Create a hash of the profile data for cache key generation
-   */
-  hashData(data) {
-    const jsonString = JSON.stringify(data, Object.keys(data).sort());
-    return crypto.createHash('md5').update(jsonString).digest('hex');
+    const crypto = require('crypto');
+    const dataString = JSON.stringify({
+      userId,
+      analysisType,
+      profileData: profileData || {}
+    });
+    return crypto.createHash('sha256').update(dataString).digest('hex');
   }
 
   /**
@@ -97,53 +92,45 @@ class AIAnalysisCacheService {
         .eq('cache_key', cacheKey)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
-        console.error('Cache retrieval error:', error);
+      if (error) {
+        Logger.debug('Cache retrieval error', { error: error.message });
         return null;
       }
-
       return data;
     } catch (error) {
-      console.error('Cache get error:', error);
+      Logger.error('Cache get error', { error: error.message });
       return null;
     }
   }
 
   /**
-   * Save analysis result to cache
+   * Save analysis to cache
    */
-  async saveToCache(cacheKey, userId, analysisType, profileData, analysisResult) {
+  async saveToCache(cacheKey, userId, analysisType, profileData, analysis) {
     try {
-      const ttl = this.getTTL(analysisType);
-      const expiresAt = new Date(Date.now() + ttl);
-
-      const cacheData = {
-        cache_key: cacheKey,
-        user_id: userId,
-        analysis_type: analysisType,
-        profile_data_hash: this.hashData(profileData),
-        analysis_result: analysisResult,
-        expires_at: expiresAt.toISOString(),
-        access_count: 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // Upsert the cache entry
+      const expiresAt = new Date(Date.now() + this.getTTL(analysisType));
+      
       const { error } = await supabase
         .from('ai_analysis_cache')
-        .upsert(cacheData, { 
-          onConflict: 'cache_key',
-          ignoreDuplicates: false 
+        .upsert({
+          cache_key: cacheKey,
+          user_id: userId,
+          analysis_type: analysisType,
+          profile_data: profileData,
+          analysis_result: analysis,
+          expires_at: expiresAt.toISOString(),
+          access_count: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
 
       if (error) {
-        console.error('Cache save error:', error);
+        Logger.error('Cache save error', { error: error.message });
       } else {
-        console.log(`💾 Cached ${analysisType} analysis for user ${userId}`);
+        Logger.debug(`Cached ${analysisType} analysis for user ${userId}`);
       }
     } catch (error) {
-      console.error('Cache save error:', error);
+      Logger.error('Cache save error', { error: error.message });
     }
   }
 
@@ -151,18 +138,18 @@ class AIAnalysisCacheService {
    * Check if cache entry is expired
    */
   isExpired(cacheEntry) {
-    if (!cacheEntry || !cacheEntry.expires_at) {
-      return true;
-    }
-    
-    const expiresAt = new Date(cacheEntry.expires_at);
-    const now = new Date();
-    
-    return now > expiresAt;
+    return new Date() > new Date(cacheEntry.expires_at);
   }
 
   /**
-   * Update cache access count and timestamp
+   * Get TTL for analysis type
+   */
+  getTTL(analysisType) {
+    return this.defaultTTL[analysisType] || this.defaultTTL.default;
+  }
+
+  /**
+   * Update cache access count
    */
   async updateCacheAccess(cacheId) {
     try {
@@ -174,15 +161,8 @@ class AIAnalysisCacheService {
         })
         .eq('id', cacheId);
     } catch (error) {
-      console.error('Cache access update error:', error);
+      Logger.error('Cache access update error', { error: error.message });
     }
-  }
-
-  /**
-   * Get TTL for specific analysis type
-   */
-  getTTL(analysisType) {
-    return this.cacheTTLs[analysisType] || this.defaultTTL;
   }
 
   /**
@@ -202,12 +182,12 @@ class AIAnalysisCacheService {
       const { error } = await query;
       
       if (error) {
-        console.error('Cache invalidation error:', error);
+        Logger.error('Cache invalidation error', { error: error.message });
       } else {
-        console.log(`🗑️ Invalidated cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
+        Logger.debug(`Invalidated cache for user ${userId}${analysisType ? ` (${analysisType})` : ''}`);
       }
     } catch (error) {
-      console.error('Cache invalidation error:', error);
+      Logger.error('Cache invalidation error', { error: error.message });
     }
   }
 
@@ -222,103 +202,63 @@ class AIAnalysisCacheService {
         .lt('expires_at', new Date().toISOString());
 
       if (error) {
-        console.error('Cache cleanup error:', error);
+        Logger.error('Cache cleanup error', { error: error.message });
       } else {
-        console.log('🧹 Cleaned up expired cache entries');
+        Logger.debug('Cleaned up expired cache entries');
       }
     } catch (error) {
-      console.error('Cache cleanup error:', error);
+      Logger.error('Cache cleanup error', { error: error.message });
     }
   }
 
   /**
    * Get cache statistics
    */
-  async getCacheStats(userId = null) {
+  async getCacheStats() {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('ai_analysis_cache')
-        .select('analysis_type, access_count, created_at, expires_at');
-
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-
-      const { data, error } = await query;
+        .select('analysis_type, expires_at, access_count');
 
       if (error) {
-        console.error('Cache stats error:', error);
+        Logger.error('Cache stats error', { error: error.message });
         return null;
       }
 
       const now = new Date();
       const stats = {
         total: data.length,
-        active: data.filter(entry => new Date(entry.expires_at) > now).length,
-        expired: data.filter(entry => new Date(entry.expires_at) <= now).length,
-        totalAccesses: data.reduce((sum, entry) => sum + entry.access_count, 0),
+        active: data.filter(item => new Date(item.expires_at) > now).length,
+        expired: data.filter(item => new Date(item.expires_at) <= now).length,
+        totalAccesses: data.reduce((sum, item) => sum + (item.access_count || 0), 0),
         byType: {}
       };
 
       // Group by analysis type
-      data.forEach(entry => {
-        if (!stats.byType[entry.analysis_type]) {
-          stats.byType[entry.analysis_type] = {
-            count: 0,
-            accesses: 0,
-            active: 0,
-            expired: 0
-          };
+      data.forEach(item => {
+        if (!stats.byType[item.analysis_type]) {
+          stats.byType[item.analysis_type] = { count: 0, accesses: 0 };
         }
-        
-        stats.byType[entry.analysis_type].count++;
-        stats.byType[entry.analysis_type].accesses += entry.access_count;
-        
-        if (new Date(entry.expires_at) > now) {
-          stats.byType[entry.analysis_type].active++;
-        } else {
-          stats.byType[entry.analysis_type].expired++;
-        }
+        stats.byType[item.analysis_type].count++;
+        stats.byType[item.analysis_type].accesses += item.access_count || 0;
       });
 
       return stats;
     } catch (error) {
-      console.error('Cache stats error:', error);
+      Logger.error('Cache stats error', { error: error.message });
       return null;
     }
   }
 
   /**
-   * Initialize cache table if it doesn't exist
+   * Initialize cache table (if needed)
    */
   async initializeCacheTable() {
     try {
-      // This would typically be handled by migrations, but including for completeness
-      const createTableSQL = `
-        CREATE TABLE IF NOT EXISTS ai_analysis_cache (
-          id SERIAL PRIMARY KEY,
-          cache_key VARCHAR(255) UNIQUE NOT NULL,
-          user_id UUID NOT NULL,
-          analysis_type VARCHAR(100) NOT NULL,
-          profile_data_hash VARCHAR(32) NOT NULL,
-          analysis_result JSONB NOT NULL,
-          expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-          access_count INTEGER DEFAULT 1,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          last_accessed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_ai_cache_user_type ON ai_analysis_cache(user_id, analysis_type);
-        CREATE INDEX IF NOT EXISTS idx_ai_cache_expires ON ai_analysis_cache(expires_at);
-        CREATE INDEX IF NOT EXISTS idx_ai_cache_key ON ai_analysis_cache(cache_key);
-      `;
-
-      console.log('Cache table initialization would be handled by database migrations');
-      return true;
+      // This would typically be handled by database migrations
+      Logger.debug('Cache table initialization would be handled by database migrations');
     } catch (error) {
-      console.error('Cache table initialization error:', error);
-      return false;
+      Logger.error('Cache table initialization error', { error: error.message });
     }
   }
 }

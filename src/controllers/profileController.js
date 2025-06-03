@@ -2,6 +2,7 @@ const supabase = require('../config/database');
 const multer = require('multer');
 const path = require('path');
 const aiAnalysisService = require('../services/aiAnalysisService');
+const Logger = require('../utils/logger');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -32,7 +33,7 @@ const uploadImageToSupabase = async (file, userId, type) => {
       });
 
     if (error) {
-      console.error('Image upload error:', error);
+      Logger.error('Image upload error', { error: error.message });
       return null;
     }
 
@@ -42,7 +43,7 @@ const uploadImageToSupabase = async (file, userId, type) => {
 
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Image upload error:', error);
+    Logger.error('Image upload error', { error: error.message });
     return null;
   }
 };
@@ -59,7 +60,7 @@ const getSkinProfile = async (req, res) => {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Skin profile fetch error:', error);
+      Logger.error('Skin profile fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch skin profile'
@@ -72,7 +73,7 @@ const getSkinProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get skin profile error:', error);
+    Logger.error('Get skin profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching skin profile'
@@ -118,7 +119,7 @@ const updateSkinProfile = async (req, res) => {
     }
 
     if (result.error) {
-      console.error('Skin profile update error:', result.error);
+      Logger.error('Skin profile update error', { error: result.error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update skin profile'
@@ -131,7 +132,7 @@ const updateSkinProfile = async (req, res) => {
     // Trigger AI analysis in the background (non-blocking)
     setImmediate(async () => {
       try {
-        console.log(`🤖 Triggering skin AI analysis for user ${user.id}`);
+        Logger.info(`Triggering skin AI analysis for user ${user.id}`);
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'skin', 
@@ -139,7 +140,7 @@ const updateSkinProfile = async (req, res) => {
           'skin_profile_update'
         );
       } catch (error) {
-        console.error('Background AI analysis error:', error);
+        Logger.error('Background AI analysis error', { error: error.message });
       }
     });
 
@@ -150,7 +151,7 @@ const updateSkinProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update skin profile error:', error);
+    Logger.error('Update skin profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating skin profile'
@@ -193,7 +194,7 @@ const uploadFacePhoto = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Face photo update error:', error);
+      Logger.error('Face photo update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update profile with photo'
@@ -210,7 +211,7 @@ const uploadFacePhoto = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Upload face photo error:', error);
+    Logger.error('Upload face photo error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while uploading face photo'
@@ -230,7 +231,7 @@ const getHairProfile = async (req, res) => {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Hair profile fetch error:', error);
+      Logger.error('Hair profile fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch hair profile'
@@ -243,7 +244,7 @@ const getHairProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get hair profile error:', error);
+    Logger.error('Get hair profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching hair profile'
@@ -285,7 +286,7 @@ const updateHairProfile = async (req, res) => {
     }
 
     if (result.error) {
-      console.error('Hair profile update error:', result.error);
+      Logger.error('Hair profile update error', { error: result.error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update hair profile'
@@ -297,7 +298,7 @@ const updateHairProfile = async (req, res) => {
     // Trigger AI analysis in the background (non-blocking)
     setImmediate(async () => {
       try {
-        console.log(`🤖 Triggering hair AI analysis for user ${user.id}`);
+        Logger.info(`Triggering hair AI analysis for user ${user.id}`);
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'hair', 
@@ -305,7 +306,7 @@ const updateHairProfile = async (req, res) => {
           'hair_profile_update'
         );
       } catch (error) {
-        console.error('Background hair AI analysis error:', error);
+        Logger.error('Background hair AI analysis error', { error: error.message });
       }
     });
 
@@ -316,7 +317,7 @@ const updateHairProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update hair profile error:', error);
+    Logger.error('Update hair profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating hair profile'
@@ -336,7 +337,7 @@ const getLifestyleDemographics = async (req, res) => {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Lifestyle demographics fetch error:', error);
+      Logger.error('Lifestyle demographics fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch lifestyle demographics'
@@ -349,7 +350,7 @@ const getLifestyleDemographics = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get lifestyle demographics error:', error);
+    Logger.error('Get lifestyle demographics error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching lifestyle demographics'
@@ -391,7 +392,7 @@ const updateLifestyleDemographics = async (req, res) => {
     }
 
     if (result.error) {
-      console.error('Lifestyle demographics update error:', result.error);
+      Logger.error('Lifestyle demographics update error', { error: result.error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update lifestyle demographics'
@@ -403,7 +404,7 @@ const updateLifestyleDemographics = async (req, res) => {
     // Trigger AI analysis in the background (non-blocking)
     setImmediate(async () => {
       try {
-        console.log(`🤖 Triggering lifestyle AI analysis for user ${user.id}`);
+        Logger.info(`Triggering lifestyle AI analysis for user ${user.id}`);
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'lifestyle', 
@@ -411,7 +412,7 @@ const updateLifestyleDemographics = async (req, res) => {
           'lifestyle_profile_update'
         );
       } catch (error) {
-        console.error('Background lifestyle AI analysis error:', error);
+        Logger.error('Background lifestyle AI analysis error', { error: error.message });
       }
     });
 
@@ -422,7 +423,7 @@ const updateLifestyleDemographics = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update lifestyle demographics error:', error);
+    Logger.error('Update lifestyle demographics error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating lifestyle demographics'
@@ -442,7 +443,7 @@ const getHealthMedicalConditions = async (req, res) => {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Health medical conditions fetch error:', error);
+      Logger.error('Health medical conditions fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch health medical conditions'
@@ -455,7 +456,7 @@ const getHealthMedicalConditions = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get health medical conditions error:', error);
+    Logger.error('Get health medical conditions error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching health medical conditions'
@@ -497,7 +498,7 @@ const updateHealthMedicalConditions = async (req, res) => {
     }
 
     if (result.error) {
-      console.error('Health medical conditions update error:', result.error);
+      Logger.error('Health medical conditions update error', { error: result.error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update health medical conditions'
@@ -509,7 +510,7 @@ const updateHealthMedicalConditions = async (req, res) => {
     // Trigger AI analysis in the background (non-blocking)
     setImmediate(async () => {
       try {
-        console.log(`🤖 Triggering health AI analysis for user ${user.id}`);
+        Logger.info(`Triggering health AI analysis for user ${user.id}`);
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'health', 
@@ -517,7 +518,7 @@ const updateHealthMedicalConditions = async (req, res) => {
           'health_profile_update'
         );
       } catch (error) {
-        console.error('Background health AI analysis error:', error);
+        Logger.error('Background health AI analysis error', { error: error.message });
       }
     });
 
@@ -528,7 +529,7 @@ const updateHealthMedicalConditions = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update health medical conditions error:', error);
+    Logger.error('Update health medical conditions error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating health medical conditions'
@@ -548,7 +549,7 @@ const getMakeupPreferences = async (req, res) => {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Makeup preferences fetch error:', error);
+      Logger.error('Makeup preferences fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch makeup preferences'
@@ -561,7 +562,7 @@ const getMakeupPreferences = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get makeup preferences error:', error);
+    Logger.error('Get makeup preferences error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching makeup preferences'
@@ -603,7 +604,7 @@ const updateMakeupPreferences = async (req, res) => {
     }
 
     if (result.error) {
-      console.error('Makeup preferences update error:', result.error);
+      Logger.error('Makeup preferences update error', { error: result.error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update makeup preferences'
@@ -615,7 +616,7 @@ const updateMakeupPreferences = async (req, res) => {
     // Trigger AI analysis in the background (non-blocking)
     setImmediate(async () => {
       try {
-        console.log(`🤖 Triggering makeup AI analysis for user ${user.id}`);
+        Logger.info(`Triggering makeup AI analysis for user ${user.id}`);
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'makeup', 
@@ -623,7 +624,7 @@ const updateMakeupPreferences = async (req, res) => {
           'makeup_profile_update'
         );
       } catch (error) {
-        console.error('Background makeup AI analysis error:', error);
+        Logger.error('Background makeup AI analysis error', { error: error.message });
       }
     });
 
@@ -634,7 +635,7 @@ const updateMakeupPreferences = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update makeup preferences error:', error);
+    Logger.error('Update makeup preferences error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating makeup preferences'
@@ -662,7 +663,7 @@ const updateProfileCompletionStatus = async (userId) => {
       .eq('id', userId);
 
   } catch (error) {
-    console.error('Profile completion update error:', error);
+    Logger.error('Profile completion update error', { error: error.message });
   }
 };
 
@@ -686,7 +687,7 @@ const getCompleteProfile = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Complete profile fetch error:', error);
+      Logger.error('Complete profile fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch complete profile'
@@ -699,7 +700,7 @@ const getCompleteProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get complete profile error:', error);
+    Logger.error('Get complete profile error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching complete profile'

@@ -1,4 +1,5 @@
 const supabase = require('../config/database');
+const Logger = require('../utils/logger');
 
 // Helper function to get client IP and device info
 const getClientInfo = (req) => {
@@ -69,7 +70,7 @@ const trackActivity = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Activity tracking error:', error);
+      Logger.error('Activity tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track activity'
@@ -83,7 +84,7 @@ const trackActivity = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track activity error:', error);
+    Logger.error('Track activity error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking activity'
@@ -122,7 +123,7 @@ const trackProductView = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Product view tracking error:', error);
+      Logger.error('Product view tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track product view'
@@ -136,7 +137,7 @@ const trackProductView = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track product view error:', error);
+    Logger.error('Track product view error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking product view'
@@ -174,7 +175,7 @@ const trackSearch = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Search tracking error:', error);
+      Logger.error('Search tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track search'
@@ -188,7 +189,7 @@ const trackSearch = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track search error:', error);
+    Logger.error('Track search error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking search'
@@ -226,7 +227,7 @@ const trackFilterApplication = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Filter tracking error:', error);
+      Logger.error('Filter tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track filter application'
@@ -240,7 +241,7 @@ const trackFilterApplication = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track filter application error:', error);
+    Logger.error('Track filter application error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking filter application'
@@ -284,7 +285,7 @@ const trackRecommendation = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Recommendation tracking error:', error);
+      Logger.error('Recommendation tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track recommendation interaction'
@@ -298,7 +299,7 @@ const trackRecommendation = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track recommendation error:', error);
+    Logger.error('Track recommendation error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking recommendation'
@@ -345,7 +346,7 @@ const trackWishlist = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Wishlist tracking error:', error);
+      Logger.error('Wishlist tracking error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to track wishlist action'
@@ -359,7 +360,7 @@ const trackWishlist = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Track wishlist error:', error);
+    Logger.error('Track wishlist error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while tracking wishlist action'
@@ -408,7 +409,7 @@ const getUserActivityHistory = async (req, res) => {
     const { data: activities, error } = await query;
 
     if (error) {
-      console.error('Activity history fetch error:', error);
+      Logger.error('Activity history fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch activity history'
@@ -426,7 +427,7 @@ const getUserActivityHistory = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get user activity history error:', error);
+    Logger.error('Get user activity history error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching activity history'
@@ -458,7 +459,7 @@ const getUserActivityAnalytics = async (req, res) => {
       .gte('created_at', startDate.toISOString());
 
     if (countsError) {
-      console.error('Activity analytics error:', countsError);
+      Logger.error('Activity analytics error', { error: countsError.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch activity analytics'
@@ -481,7 +482,7 @@ const getUserActivityAnalytics = async (req, res) => {
       .not('product_id', 'is', null);
 
     if (viewsError) {
-      console.error('Product views analytics error:', viewsError);
+      Logger.error('Product views analytics error', { error: viewsError.message });
     }
 
     const productViewCounts = productViews?.reduce((acc, view) => {
@@ -505,7 +506,7 @@ const getUserActivityAnalytics = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get user activity analytics error:', error);
+    Logger.error('Get user activity analytics error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'Internal server error while fetching activity analytics'
