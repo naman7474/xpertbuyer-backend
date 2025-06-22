@@ -26,13 +26,35 @@ app.use(helmet({
 // CORS configuration with environment-based origins
 const getAllowedOrigins = () => {
   if (process.env.NODE_ENV === 'production') {
-    return process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
+    // Add both with and without trailing slash, and log for debugging
+    const frontendUrl = process.env.FRONTEND_URL;
+    const origins = frontendUrl ? [frontendUrl, frontendUrl.replace(/\/$/, ''), frontendUrl + '/'] : [];
+    
+    // For debugging - also allow the common frontend URL
+    origins.push('https://xpertbuyer-frontend.vercel.app');
+    origins.push('https://xpertbuyer-frontend.vercel.app/');
+    
+    console.log('Production CORS origins:', origins);
+    return origins;
   }
   return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 };
 
 app.use(cors({
-  origin: getAllowedOrigins(),
+  origin: function (origin, callback) {
+    const allowedOrigins = getAllowedOrigins();
+    console.log('CORS check - origin:', origin, 'allowed:', allowedOrigins);
+    
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -104,19 +126,29 @@ const validateEnvironment = () => {
   
   if (missingVars.length > 0) {
     Logger.error('Missing required environment variables', { missingVars });
-    process.exit(1);
+    // Only exit in non-Vercel environments to prevent serverless function crashes
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    } else {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
   
   // Validate JWT secret strength in production
-  if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32) {
+  if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
     Logger.error('JWT_SECRET must be at least 32 characters in production');
-    process.exit(1);
+    // Only exit in non-Vercel environments
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    } else {
+      throw new Error('JWT_SECRET must be at least 32 characters in production');
+    }
   }
   
   Logger.info('Environment validation passed');
 };
 
-// Start server
+// Start server (only when not in Vercel serverless environment)
 const startServer = () => {
   try {
     validateEnvironment();
@@ -153,20 +185,30 @@ const gracefulShutdown = (signal) => {
   }, 10000);
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+// Only set up server and process handlers when not in Vercel serverless environment
+if (process.env.VERCEL !== '1') {
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  Logger.error('Uncaught exception', { error: error.message, stack: error.stack });
-  process.exit(1);
-});
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    Logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+    process.exit(1);
+  });
 
-process.on('unhandledRejection', (reason, promise) => {
-  Logger.error('Unhandled promise rejection', { reason, promise });
-  process.exit(1);
-});
+  process.on('unhandledRejection', (reason, promise) => {
+    Logger.error('Unhandled promise rejection', { reason, promise });
+  });
 
-startServer();
+  startServer();
+} else {
+  // Vercel serverless - just validate environment
+  try {
+    validateEnvironment();
+  } catch (error) {
+    Logger.error('Environment validation failed in serverless', { error: error.message });
+  }
+}
 
+// Export app for testing
 module.exports = app; 

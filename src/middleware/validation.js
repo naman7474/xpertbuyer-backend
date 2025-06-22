@@ -23,6 +23,65 @@ const videosSummarySchema = Joi.object({
   productIds: Joi.string().required().pattern(/^[^,]+(,[^,]+)*$/, 'comma-separated product IDs')
 });
 
+// Beauty profile validations
+const validateBeautyProfile = {
+  skin: Joi.object({
+    skin_type: Joi.string().valid('dry', 'oily', 'combination', 'normal', 'sensitive'),
+    skin_tone: Joi.string().valid('fair', 'light', 'medium', 'tan', 'deep'),
+    undertone: Joi.string().valid('warm', 'cool', 'neutral'),
+    fitzpatrick_phototype: Joi.number().integer().min(1).max(6),
+    primary_concerns: Joi.array().items(Joi.string()).max(5),
+    known_allergies: Joi.array().items(Joi.string()),
+    sensitivity_level: Joi.string().valid('low', 'medium', 'high'),
+    daily_sun_exposure: Joi.number().integer().min(0).max(1440),
+    sunscreen_usage: Joi.string().valid('never', 'sometimes', 'daily', 'multiple_times'),
+    photo_analysis_consent: Joi.boolean()
+  }),
+  
+  hair: Joi.object({
+    hair_pattern: Joi.string().valid('straight', 'wavy', 'curly', 'coily'),
+    hair_texture: Joi.string().valid('fine', 'medium', 'coarse'),
+    hair_thickness: Joi.string().valid('thin', 'medium', 'thick'),
+    hair_density: Joi.string().valid('low', 'medium', 'high'),
+    scalp_type: Joi.string().valid('dry', 'oily', 'normal', 'combination'),
+    hair_porosity: Joi.string().valid('low', 'normal', 'high'),
+    heat_styling_frequency: Joi.string().valid('never', 'rarely', 'weekly', 'daily'),
+    wash_frequency: Joi.number().integer().min(1).max(14)
+  }),
+  
+  lifestyle: Joi.object({
+    location_city: Joi.string().trim().max(100),
+    location_state: Joi.string().trim().max(100),
+    climate_type: Joi.string().valid('tropical', 'dry', 'temperate', 'continental', 'polar'),
+    pollution_level: Joi.string().valid('low', 'moderate', 'high', 'severe'),
+    uv_exposure_level: Joi.string().valid('minimal', 'moderate', 'high', 'extreme'),
+    diet_type: Joi.string().valid('vegetarian', 'vegan', 'non_vegetarian', 'pescatarian'),
+    sleep_hours: Joi.number().min(0).max(24),
+    stress_level: Joi.string().valid('low', 'moderate', 'high', 'severe'),
+    exercise_frequency: Joi.string().valid('sedentary', 'light', 'moderate', 'active', 'very_active')
+  }),
+  
+  health: Joi.object({
+    skin_conditions: Joi.array().items(Joi.string()),
+    hair_scalp_disorders: Joi.array().items(Joi.string()),
+    systemic_allergies: Joi.array().items(Joi.string()),
+    photosensitivity: Joi.boolean(),
+    hormonal_status: Joi.string().valid('normal', 'pregnancy', 'breastfeeding', 'menopause', 'pcos', 'thyroid_disorder'),
+    chronic_conditions: Joi.array().items(Joi.string())
+  }),
+  
+  makeup: Joi.object({
+    foundation_undertone: Joi.string().valid('warm', 'cool', 'neutral'),
+    foundation_finish: Joi.string().valid('matte', 'dewy', 'satin', 'natural'),
+    coverage_preference: Joi.string().valid('light', 'medium', 'full', 'buildable'),
+    makeup_frequency: Joi.string().valid('never', 'special_occasions', 'weekends', 'daily', 'multiple_daily'),
+    makeup_style: Joi.string().valid('natural', 'casual', 'professional', 'glam', 'dramatic'),
+    price_range_preference: Joi.string().valid('budget', 'mid_range', 'luxury', 'mixed'),
+    sensitive_eyes: Joi.boolean(),
+    contact_lenses: Joi.boolean()
+  })
+};
+
 const validateSearch = (req, res, next) => {
   const { error, value } = searchSchema.validate(req.body);
   
@@ -355,6 +414,7 @@ module.exports = {
   validateCompareProducts,
   validateProductVideos,
   validateVideosSummary,
+  validateBeautyProfile,
   validateUserRegistration,
   validateUserLogin,
   validateSkinProfile,
