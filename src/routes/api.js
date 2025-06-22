@@ -10,7 +10,7 @@ const {
   PhotoController, 
   BeautyProfileController, 
   BeautyRecommendationController 
-} = require('../controllers/photoController');
+} = require('../controllers/beautyControllers');
 
 // Middleware
 const { 
@@ -210,54 +210,16 @@ router.get(
   async (req, res) => {
     try {
       const { user } = req;
-
-      // Get user's progress timeline
-      const { data: progress, error } = await supabase
-        .from('user_progress')
-        .select(`
-          *,
-          photo_uploads(*),
-          photo_analyses(*)
-        `)
-        .eq('user_id', user.id)
-        .order('week_number', { ascending: true });
-
-      if (error) throw error;
-
-      // Get baseline (first analysis)
-      const baseline = progress.length > 0 ? progress[0] : null;
-      const latest = progress.length > 0 ? progress[progress.length - 1] : null;
-
-      // Calculate overall improvement
-      let overallImprovement = 0;
-      if (baseline && latest && baseline.photo_analyses?.[0] && latest.photo_analyses?.[0]) {
-        const baselineScore = baseline.photo_analyses[0].overall_skin_score;
-        const latestScore = latest.photo_analyses[0].overall_skin_score;
-        overallImprovement = ((latestScore - baselineScore) / baselineScore) * 100;
-      }
-
+      
+      // Import the service at the top of the file
+      const beautyProgressService = require('../services/beautyProgressService');
+      
+      const timeline = await beautyProgressService.getProgressTimeline(user.id);
+      
       res.status(200).json({
         success: true,
-        data: {
-          baseline: baseline ? {
-            date: baseline.created_at,
-            skin_score: baseline.photo_analyses?.[0]?.overall_skin_score || 0,
-            concerns: baseline.photo_analyses?.[0]?.skin_concerns || []
-          } : null,
-          progress: progress.map(p => ({
-            week: p.week_number,
-            date: p.created_at,
-            skin_score: p.photo_analyses?.[0]?.overall_skin_score || 0,
-            improvements: p.concern_improvements || {},
-            photo_comparison: {
-              before: baseline?.progress_photo_id,
-              after: p.progress_photo_id
-            }
-          })),
-          ai_analysis: `${Math.abs(overallImprovement).toFixed(1)}% ${overallImprovement >= 0 ? 'improvement' : 'change'} in overall skin health`
-        }
+        data: timeline
       });
-
     } catch (error) {
       res.status(500).json({
         success: false,

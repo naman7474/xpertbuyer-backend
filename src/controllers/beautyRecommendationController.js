@@ -1,4 +1,5 @@
 // src/controllers/beautyRecommendationController.js
+const supabase = require('../config/database');
 const beautyRecommendationService = require('../services/beautyRecommendationService');
 const Logger = require('../utils/logger');
 
@@ -70,8 +71,4 @@ class BeautyRecommendationController {
   }
 }
 
-module.exports = {
-  PhotoController: new PhotoController(),
-  BeautyProfileController: new BeautyProfileController(),
-  BeautyRecommendationController: new BeautyRecommendationController()
-};
+module.exports = new BeautyRecommendationController();
