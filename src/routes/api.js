@@ -102,6 +102,12 @@ router.post(
 
 // Beauty Profile Routes
 router.get(
+  '/profile/beauty', 
+  authenticateToken, 
+  BeautyProfileController.getCompleteProfile
+);
+
+router.get(
   '/profile/beauty/complete', 
   authenticateToken, 
   BeautyProfileController.getCompleteProfile

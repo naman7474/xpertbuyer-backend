@@ -55,20 +55,30 @@ jest.mock('../../src/config/database', () => ({
 }));
 
 // Mock services
-jest.mock('../../src/services/beautyOnboardingService', () => ({
-  onProfileUpdate: jest.fn(() => Promise.resolve({
-    triggered: false,
-    reason: 'profile_incomplete',
-    profileCompletion: 80
+jest.mock('../../src/services/beautyProfileService', () => ({
+  updateProfile: jest.fn(() => Promise.resolve({
+    profile: { user_id: 'test-user', skin_type: 'combination' },
+    section: 'skin',
+    onboardingStatus: {
+      triggered: false,
+      reason: 'profile_incomplete',
+      profileCompletion: 80
+    }
   })),
-  getOnboardingProgress: jest.fn(() => Promise.resolve({
-    steps: {
-      profile: { complete: false, percentage: 80 },
-      photo: { uploaded: false, processed: false },
-      recommendations: { generated: false }
+  getProfile: jest.fn(() => Promise.resolve({
+    profile: { user_id: 'test-user', skin_type: 'combination' },
+    completion: { overall: 80, isComplete: false, sections: {}, missingFields: [] },
+    onboardingStatus: {
+      steps: {
+        profile: { complete: false, percentage: 80 },
+        photo: { uploaded: false, processed: false },
+        recommendations: { generated: false }
+      },
+      overallProgress: 40,
+      nextStep: 'complete_profile',
+      isOnboardingComplete: false
     },
-    overallProgress: 40,
-    nextStep: 'complete_profile'
+    isNewUser: false
   }))
 }));
 

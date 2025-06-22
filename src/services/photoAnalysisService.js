@@ -5,7 +5,7 @@ const Logger = require('../utils/logger');
 const sharp = require('sharp');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const beautyOnboardingService = require('./beautyOnboardingService');
+const beautyProfileService = require('./beautyProfileService');
 
 // Conditionally import Google Cloud Storage
 let Storage;
@@ -172,7 +172,7 @@ class PhotoAnalysisService {
       });
 
       // Trigger recommendations if profile is complete
-      await beautyOnboardingService.onPhotoAnalysisComplete(
+      await beautyProfileService.onPhotoAnalysisComplete(
         userId, 
         photoId, 
         analysisRecord.id

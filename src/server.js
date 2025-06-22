@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const apiRoutes = require('./routes/api');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const CacheCleanupService = require('./utils/cacheCleanupService');
+const { refreshDatabase } = require('./utils/refreshDatabase');
 const Logger = require('./utils/logger');
 
 const app = express();
@@ -149,9 +150,17 @@ const validateEnvironment = () => {
 };
 
 // Start server (only when not in Vercel serverless environment)
-const startServer = () => {
+const startServer = async () => {
   try {
     validateEnvironment();
+    
+    // Refresh database connection and schema cache on startup
+    try {
+      await refreshDatabase();
+      Logger.info('Database schema refreshed successfully');
+    } catch (error) {
+      Logger.warn('Database refresh failed, but continuing startup', { error: error.message });
+    }
     
     app.listen(PORT, () => {
       Logger.info(`XpertBuyer API server running on port ${PORT}`, {

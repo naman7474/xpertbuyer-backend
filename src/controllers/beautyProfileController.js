@@ -1,6 +1,5 @@
 // src/controllers/beautyProfileController.js
-const supabase = require('../config/database');
-const beautyOnboardingService = require('../services/beautyOnboardingService');
+const beautyProfileService = require('../services/beautyProfileService');
 const Logger = require('../utils/logger');
 
 class BeautyProfileController {
@@ -11,12 +10,17 @@ class BeautyProfileController {
     try {
       const { user } = req;
 
-      // Get onboarding progress
-      const progress = await beautyOnboardingService.getOnboardingProgress(user.id);
+      // Get complete profile information
+      const profileData = await beautyProfileService.getProfile(user.id);
 
       res.status(200).json({
         success: true,
-        data: progress
+        data: {
+          profile: profileData.profile,
+          completion: profileData.completion,
+          onboardingStatus: profileData.onboardingStatus,
+          isNewUser: profileData.isNewUser
+        }
       });
 
     } catch (error) {
@@ -36,35 +40,15 @@ class BeautyProfileController {
       const { user } = req;
       const skinData = req.body;
 
-      // Upsert beauty profile with skin data
-      const { data, error } = await supabase
-        .from('beauty_profiles')
-        .upsert({
-          user_id: user.id,
-          skin_type: skinData.skin_type,
-          skin_tone: skinData.skin_tone,
-          undertone: skinData.undertone,
-          primary_skin_concerns: skinData.primary_concerns,
-          secondary_skin_concerns: skinData.secondary_concerns,
-          skin_sensitivity_level: skinData.sensitivity_level,
-          known_allergies: skinData.allergies,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Check and trigger recommendations if ready
-      const recommendationResult = await beautyOnboardingService.onProfileUpdate(user.id, 'skin');
+      // Update skin profile using unified service
+      const result = await beautyProfileService.updateProfile(user.id, 'skin', skinData);
 
       res.status(200).json({
         success: true,
         message: 'Skin profile updated successfully',
-        data: data,
-        onboardingStatus: recommendationResult
+        data: result.profile,
+        section: result.section,
+        onboardingStatus: result.onboardingStatus
       });
 
     } catch (error) {
@@ -84,33 +68,15 @@ class BeautyProfileController {
       const { user } = req;
       const hairData = req.body;
 
-      const { data, error } = await supabase
-        .from('beauty_profiles')
-        .upsert({
-          user_id: user.id,
-          hair_type: hairData.hair_type,
-          hair_texture: hairData.hair_texture,
-          hair_porosity: hairData.hair_porosity,
-          scalp_condition: hairData.scalp_condition,
-          hair_concerns: hairData.primary_concerns,
-          chemical_treatments: hairData.chemical_treatments,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Check and trigger recommendations if ready
-      const recommendationResult = await beautyOnboardingService.onProfileUpdate(user.id, 'hair');
+      // Update hair profile using unified service
+      const result = await beautyProfileService.updateProfile(user.id, 'hair', hairData);
 
       res.status(200).json({
         success: true,
         message: 'Hair profile updated successfully',
-        data: data,
-        onboardingStatus: recommendationResult
+        data: result.profile,
+        section: result.section,
+        onboardingStatus: result.onboardingStatus
       });
 
     } catch (error) {
@@ -130,36 +96,15 @@ class BeautyProfileController {
       const { user } = req;
       const lifestyleData = req.body;
 
-      const { data, error } = await supabase
-        .from('beauty_profiles')
-        .upsert({
-          user_id: user.id,
-          location_city: lifestyleData.location?.split(',')[0],
-          location_country: lifestyleData.location?.split(',')[1]?.trim() || 'India',
-          climate_type: lifestyleData.climate_type,
-          pollution_level: lifestyleData.pollution_level,
-          sun_exposure_daily: lifestyleData.sun_exposure,
-          sleep_hours_avg: lifestyleData.sleep_hours,
-          stress_level: lifestyleData.stress_level,
-          exercise_frequency: lifestyleData.exercise_frequency,
-          water_intake_daily: lifestyleData.water_intake,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Check and trigger recommendations if ready
-      const recommendationResult = await beautyOnboardingService.onProfileUpdate(user.id, 'lifestyle');
+      // Update lifestyle profile using unified service
+      const result = await beautyProfileService.updateProfile(user.id, 'lifestyle', lifestyleData);
 
       res.status(200).json({
         success: true,
         message: 'Lifestyle profile updated successfully',
-        data: data,
-        onboardingStatus: recommendationResult
+        data: result.profile,
+        section: result.section,
+        onboardingStatus: result.onboardingStatus
       });
 
     } catch (error) {
@@ -179,33 +124,15 @@ class BeautyProfileController {
       const { user } = req;
       const healthData = req.body;
 
-      const { data, error } = await supabase
-        .from('beauty_profiles')
-        .upsert({
-          user_id: user.id,
-          age: healthData.age || new Date().getFullYear() - new Date(user.date_of_birth).getFullYear(),
-          hormonal_status: healthData.hormonal_status,
-          medications: healthData.medications || [],
-          skin_medical_conditions: healthData.skin_conditions || [],
-          dietary_type: healthData.dietary_restrictions?.[0] || 'omnivore',
-          supplements: healthData.supplements || [],
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Check and trigger recommendations if ready
-      const recommendationResult = await beautyOnboardingService.onProfileUpdate(user.id, 'health');
+      // Update health profile using unified service
+      const result = await beautyProfileService.updateProfile(user.id, 'health', healthData);
 
       res.status(200).json({
         success: true,
         message: 'Health profile updated successfully',
-        data: data,
-        onboardingStatus: recommendationResult
+        data: result.profile,
+        section: result.section,
+        onboardingStatus: result.onboardingStatus
       });
 
     } catch (error) {
@@ -225,32 +152,15 @@ class BeautyProfileController {
       const { user } = req;
       const makeupData = req.body;
 
-      const { data, error } = await supabase
-        .from('beauty_profiles')
-        .upsert({
-          user_id: user.id,
-          makeup_frequency: makeupData.makeup_frequency,
-          preferred_look: makeupData.preferred_look,
-          coverage_preference: makeupData.coverage_preference,
-          budget_range: makeupData.budget_range,
-          favorite_brands: makeupData.favorite_brands || [],
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Check and trigger recommendations if ready
-      const recommendationResult = await beautyOnboardingService.onProfileUpdate(user.id, 'makeup');
+      // Update makeup profile using unified service
+      const result = await beautyProfileService.updateProfile(user.id, 'makeup', makeupData);
 
       res.status(200).json({
         success: true,
         message: 'Makeup preferences updated successfully',
-        data: data,
-        onboardingStatus: recommendationResult
+        data: result.profile,
+        section: result.section,
+        onboardingStatus: result.onboardingStatus
       });
 
     } catch (error) {

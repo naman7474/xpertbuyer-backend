@@ -10,13 +10,13 @@ app.use('/api', require('../../src/routes/api'));
 
 // Mock all dependencies
 jest.mock('../../src/config/database');
-jest.mock('../../src/services/beautyOnboardingService');
+jest.mock('../../src/services/beautyProfileService');
 jest.mock('../../src/services/photoAnalysisService');
 jest.mock('../../src/services/beautyRecommendationService');
 jest.mock('../../src/services/searchService');
 
 // Get mocked services
-const beautyOnboardingService = require('../../src/services/beautyOnboardingService');
+const beautyProfileService = require('../../src/services/beautyProfileService');
 const photoAnalysisService = require('../../src/services/photoAnalysisService');
 const beautyRecommendationService = require('../../src/services/beautyRecommendationService');
 const searchService = require('../../src/services/searchService');
@@ -38,53 +38,52 @@ describe('Beauty AI Platform Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('Onboarding Flow', () => {
-    test('GET /api/profile/beauty/onboarding - should return onboarding progress', async () => {
-      beautyOnboardingService.getOnboardingProgress.mockResolvedValue({
-        steps: {
-          profile: { complete: false, percentage: 60 },
-          photo: { uploaded: true, processed: false, status: 'processing' },
-          recommendations: { generated: false }
+  describe('Profile & Onboarding Flow', () => {
+    test('GET /api/profile/beauty - should return complete profile data', async () => {
+      beautyProfileService.getProfile.mockResolvedValue({
+        profile: { user_id: testUserId, skin_type: 'combination' },
+        completion: { overall: 60, isComplete: false, sections: {}, missingFields: ['lifestyle.location'] },
+        onboardingStatus: {
+          steps: {
+            profile: { complete: false, percentage: 60 },
+            photo: { uploaded: true, processed: false, status: 'processing' },
+            recommendations: { generated: false }
+          },
+          overallProgress: 40,
+          nextStep: 'complete_profile',
+          isOnboardingComplete: false
         },
-        overallProgress: 40,
-        nextStep: 'complete_profile'
+        isNewUser: false
       });
 
       const response = await request(app)
-        .get('/api/profile/beauty/onboarding')
+        .get('/api/profile/beauty')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.overallProgress).toBe(40);
-      expect(response.body.data.nextStep).toBe('complete_profile');
+      expect(response.body.data.onboardingStatus.overallProgress).toBe(40);
+      expect(response.body.data.onboardingStatus.nextStep).toBe('complete_profile');
+      expect(response.body.data.completion.overall).toBe(60);
     });
   });
 
   describe('Profile Management', () => {
     test('PUT /api/profile/beauty/skin - should update skin profile and check for recommendations', async () => {
-      const mockSupabase = require('../../src/config/database');
-      mockSupabase.from.mockReturnValue({
-        upsert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: {
-                user_id: testUserId,
-                skin_type: 'combination',
-                skin_tone: 'medium',
-                undertone: 'warm'
-              },
-              error: null
-            })
-          })
-        })
-      });
-
-      beautyOnboardingService.onProfileUpdate.mockResolvedValue({
-        triggered: false,
-        reason: 'profile_incomplete',
-        profileCompletion: 80,
-        missingFields: ['lifestyle.location']
+      beautyProfileService.updateProfile.mockResolvedValue({
+        profile: {
+          user_id: testUserId,
+          skin_type: 'combination',
+          skin_tone: 'medium',
+          undertone: 'warm'
+        },
+        section: 'skin',
+        onboardingStatus: {
+          triggered: false,
+          reason: 'profile_incomplete',
+          profileCompletion: 80,
+          missingFields: ['lifestyle.location']
+        }
       });
 
       const response = await request(app)
@@ -101,31 +100,28 @@ describe('Beauty AI Platform Integration Tests', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.onboardingStatus.profileCompletion).toBe(80);
-      expect(beautyOnboardingService.onProfileUpdate).toHaveBeenCalledWith(testUserId, 'skin');
+      expect(beautyProfileService.updateProfile).toHaveBeenCalledWith(testUserId, 'skin', {
+        skin_type: 'combination',
+        skin_tone: 'medium',
+        undertone: 'warm',
+        primary_concerns: ['acne', 'dark_spots'],
+        sensitivity_level: 'medium'
+      });
     });
 
     test('Profile update should trigger recommendations when complete', async () => {
-      const mockSupabase = require('../../src/config/database');
-      mockSupabase.from.mockReturnValue({
-        upsert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { user_id: testUserId, budget_range: '3000_5000' },
-              error: null
-            })
-          })
-        })
-      });
-
-      beautyOnboardingService.onProfileUpdate.mockResolvedValue({
-        triggered: true,
-        reason: 'success',
-        profileCompletion: 100,
-        analysisId: 'analysis-123',
-        recommendationCount: {
-          morning: 4,
-          evening: 5,
-          weekly: 2
+      beautyProfileService.updateProfile.mockResolvedValue({
+        profile: { user_id: testUserId, budget_range: '3000_5000' },
+        section: 'makeup',
+        onboardingStatus: {
+          triggered: true,
+          reason: 'recommendations_generated',
+          profileCompletion: 100,
+          recommendationCount: {
+            morning: 4,
+            evening: 5,
+            weekly: 2
+          }
         }
       });
 
@@ -140,7 +136,7 @@ describe('Beauty AI Platform Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.onboardingStatus.triggered).toBe(true);
-      expect(response.body.onboardingStatus.reason).toBe('success');
+      expect(response.body.onboardingStatus.reason).toBe('recommendations_generated');
     });
   });
 
@@ -274,35 +270,30 @@ describe('Beauty AI Platform Integration Tests', () => {
 
   describe('Complete Onboarding Flow', () => {
     test('Should automatically trigger recommendations after profile and photo completion', async () => {
-      // Step 1: Complete profile
-      const mockSupabase = require('../../src/config/database');
-      mockSupabase.from.mockReturnValue({
-        upsert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { user_id: testUserId },
-              error: null
-            })
-          })
-        })
-      });
-
       // Initial profile update - not complete
-      beautyOnboardingService.onProfileUpdate.mockResolvedValueOnce({
-        triggered: false,
-        reason: 'profile_incomplete',
-        profileCompletion: 80
+      beautyProfileService.updateProfile.mockResolvedValueOnce({
+        profile: { user_id: testUserId },
+        section: 'skin',
+        onboardingStatus: {
+          triggered: false,
+          reason: 'profile_incomplete',
+          profileCompletion: 80
+        }
       });
 
       // Final profile update - triggers recommendations
-      beautyOnboardingService.onProfileUpdate.mockResolvedValueOnce({
-        triggered: true,
-        reason: 'success',
-        profileCompletion: 100,
-        recommendationCount: {
-          morning: 4,
-          evening: 5,
-          weekly: 2
+      beautyProfileService.updateProfile.mockResolvedValueOnce({
+        profile: { user_id: testUserId },
+        section: 'lifestyle',
+        onboardingStatus: {
+          triggered: true,
+          reason: 'recommendations_generated',
+          profileCompletion: 100,
+          recommendationCount: {
+            morning: 4,
+            evening: 5,
+            weekly: 2
+          }
         }
       });
 
@@ -335,7 +326,7 @@ describe('Beauty AI Platform Integration Tests', () => {
         });
 
       expect(response.body.onboardingStatus.triggered).toBe(true);
-      expect(response.body.onboardingStatus.reason).toBe('success');
+      expect(response.body.onboardingStatus.reason).toBe('recommendations_generated');
       expect(response.body.onboardingStatus.recommendationCount).toBeDefined();
     });
   });
