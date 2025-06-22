@@ -1,0 +1,1405 @@
+namanjain@Namans-MacBook-Air-2 backend-apis % npm start
+
+> xpertbuyer-backend@1.0.0 start
+> node src/server.js
+
+[2025-06-22T12:05:03.456Z] INFO: Using Supabase Storage for photo uploads {}
+[2025-06-22T12:05:03.564Z] INFO: Environment validation passed {}
+[2025-06-22T12:05:03.564Z] INFO: Refreshing database connection and schema cache... {}
+[2025-06-22T12:05:04.088Z] INFO: Database connection test successful {}
+[2025-06-22T12:05:04.088Z] INFO: Database refresh completed successfully {}
+[2025-06-22T12:05:04.088Z] INFO: Database schema refreshed successfully {}
+[2025-06-22T12:05:04.090Z] INFO: XpertBuyer API server running on port 5000 { environment: 'development', port: '5000' }
+[2025-06-22T12:05:04.091Z] INFO: Starting cache cleanup service (every 6 hours) {}
+[2025-06-22T12:05:04.091Z] DEBUG: Starting cache cleanup... {}
+[2025-06-22T12:05:04.091Z] INFO: Cache cleanup service initialized {}
+[2025-06-22T12:05:04.169Z] ERROR: Cache stats error { error: 'relation "public.ai_analysis_cache" does not exist' }
+[2025-06-22T12:05:04.235Z] ERROR: Cache cleanup error { error: 'relation "public.ai_analysis_cache" does not exist' }
+[2025-06-22T12:05:04.296Z] ERROR: Cache stats error { error: 'relation "public.ai_analysis_cache" does not exist' }
+[2025-06-22T12:05:04.296Z] INFO: Cache cleanup completed. Removed 0 expired entries {}
+CORS check - origin: http://localhost:3000 allowed: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173'
+]
+CORS check - origin: http://localhost:3000 allowed: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173'
+]
+[2025-06-22T12:06:01.013Z] INFO: PUT /api/profile/beauty/skin {
+  ip: '::1',
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+}
+CORS check - origin: http://localhost:3000 allowed: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173'
+]
+CORS check - origin: http://localhost:3000 allowed: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173'
+]
+[2025-06-22T12:06:01.034Z] INFO: PUT /api/profile/beauty/lifestyle {
+  ip: '::1',
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+}
+[2025-06-22T12:06:01.219Z] INFO: Updating profile section {
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c',
+  section: 'lifestyle'
+}
+[2025-06-22T12:06:01.225Z] INFO: Updating profile section { userId: '3d96c307-8edb-41fd-af1f-e97c422c842c', section: 'skin' }
+[2025-06-22T12:06:01.281Z] INFO: Preparing lifestyle update data {
+  incomingData: {
+    location_city: 'Gurgaon',
+    location_country: 'India',
+    climate_type: 'dry',
+    pollution_level: 'severe',
+    sun_exposure_daily: 'low',
+    sleep_hours: '5-7 hours',
+    stress_level: 'Moderate',
+    exercise_frequency: 'moderate'
+  },
+  mappedValues: {
+    climate_type: 'dry',
+    pollution_level: 'severe',
+    sun_exposure_daily: undefined,
+    stress_level: 'Moderate',
+    exercise_frequency: 'moderate'
+  }
+}
+[2025-06-22T12:06:01.301Z] INFO: Preparing skin update data {
+  incomingData: {
+    skin_type: 'Oily & Shiny',
+    skin_tone: 'medium',
+    undertone: 'neutral',
+    primary_skin_concerns: [ 'acne', 'dark_spots', 'blackheads', 'whiteheads' ],
+    skin_sensitivity: 'Moderately Sensitive'
+  },
+  mappedValues: {
+    skin_type: 'Oily & Shiny',
+    skin_tone: 'medium',
+    undertone: 'neutral',
+    skin_sensitivity: 'Moderately Sensitive'
+  }
+}
+[2025-06-22T12:06:01.354Z] INFO: Profile update completion check {
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c',
+  section: 'lifestyle',
+  completion: 54
+}
+[2025-06-22T12:06:01.369Z] INFO: Profile update completion check {
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c',
+  section: 'skin',
+  completion: 54
+}
+[2025-06-22T12:06:01.422Z] INFO: Regenerating recommendations after profile update {
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c',
+  section: 'lifestyle',
+  reason: 'profile_updated'
+}
+[2025-06-22T12:06:01.432Z] INFO: Regenerating recommendations after profile update {
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c',
+  section: 'skin',
+  reason: 'profile_updated'
+}
+[2025-06-22T12:06:01.496Z] INFO: Cleared existing recommendations for regeneration { userId: '3d96c307-8edb-41fd-af1f-e97c422c842c' }
+[2025-06-22T12:06:01.496Z] INFO: Generating beauty recommendations { userId: '3d96c307-8edb-41fd-af1f-e97c422c842c' }
+[2025-06-22T12:06:01.502Z] INFO: Cleared existing recommendations for regeneration { userId: '3d96c307-8edb-41fd-af1f-e97c422c842c' }
+[2025-06-22T12:06:01.503Z] INFO: Generating beauty recommendations { userId: '3d96c307-8edb-41fd-af1f-e97c422c842c' }
+[2025-06-22T12:06:13.727Z] INFO: Finding matching products {
+  productType: 'Cleanser',
+  keyIngredients: [ 'Salicylic Acid', 'Tea Tree Oil' ],
+  searchQuery: 'Cleanser with Salicylic Acid Tea Tree Oil'
+}
+[2025-06-22T12:06:13.735Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:13.882Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:14.003Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:14.004Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:14.004Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:14.004Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:14.004Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:14.004Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:14.004Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:14.004Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:15.230Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:15.231Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:16.676Z] INFO: Finding matching products {
+  productType: 'Cleanser',
+  keyIngredients: [ 'Salicylic Acid', 'Tea Tree Oil', 'Niacinamide' ],
+  searchQuery: 'Cleanser with Salicylic Acid Tea Tree Oil Niacinamide'
+}
+[2025-06-22T12:06:16.676Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:16.788Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:16.919Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:16.919Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:16.919Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:16.919Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:16.919Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:16.919Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:16.919Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:16.919Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:17.050Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND (i.display_name ILIKE '%salicylic acid%' OR i.inci_name ILIKE '%salicylic acid%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:17.051Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND (i.display_name ILIKE '%salicylic acid%' OR i.inci_name ILIKE '%salicylic acid%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:17.053Z] DEBUG: Generated SQL {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND (i.display_name ILIKE '%salicylic acid%' OR i.inci_name ILIKE '%salicylic acid%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:17.053Z] DEBUG: Metadata {
+  concerns: [ 'acne', 'oil_control' ],
+  excludedIngredients: [],
+  priceRange: null,
+  productType: null,
+  confidence: 0.9
+}
+[2025-06-22T12:06:17.119Z] DEBUG: RPC 'exec_sql' executed successfully {}
+[2025-06-22T12:06:17.119Z] DEBUG: AI SQL generation yielded no products, falling back to standard search logic {}
+[2025-06-22T12:06:17.119Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:17.177Z] DEBUG: No matching ingredients found for { ingredient: 'salicylic acid' }
+[2025-06-22T12:06:17.314Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:17.315Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:17.317Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:17.387Z] INFO: Found matching product {
+  productId: 'copy-of-coffee-face-care-kit',
+  productName: 'Green Tea Face Wash - 10ml',
+  brand: 'Mcaffine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:17.388Z] INFO: Finding matching products {
+  productType: 'Toner',
+  keyIngredients: [ 'Witch Hazel', 'Niacinamide' ],
+  searchQuery: 'Toner with Witch Hazel Niacinamide'
+}
+[2025-06-22T12:06:17.388Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:17.503Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:17.621Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:17.621Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:17.621Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:17.621Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:17.621Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:17.621Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:17.621Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:17.621Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:18.110Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:18.111Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:18.719Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:18.719Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:18.770Z] DEBUG: No matching ingredients found for { ingredient: 'witch hazel, niacinamide' }
+[2025-06-22T12:06:18.865Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:18.866Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:18.866Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:18.929Z] INFO: Found matching product {
+  productId: 'toner-serum-bha-salicylic-acid-2-coffee',
+  productName: 'BHA-2% Salicylic Acid 2in1 Toner-Serum with Coffee - Unclogs Pores & Reduces Blackheads - 150 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:18.930Z] INFO: Finding matching products {
+  productType: 'Serum',
+  keyIngredients: [ 'Vitamin C', 'Hyaluronic Acid' ],
+  searchQuery: 'Serum with Vitamin C Hyaluronic Acid'
+}
+[2025-06-22T12:06:18.930Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:19.043Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:19.159Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:19.159Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:19.159Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:19.159Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:19.159Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:19.159Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:19.159Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:19.159Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:20.154Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    '  AND (\n' +
+    "    i.display_name ILIKE '%Salicylic Acid%'\n" +
+    "    OR i.display_name ILIKE '%Tea Tree Oil%'\n" +
+    "    OR i.display_name ILIKE '%Niacinamide%'\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:20.154Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    '  AND (\n' +
+    "    i.display_name ILIKE '%Salicylic Acid%'\n" +
+    "    OR i.display_name ILIKE '%Tea Tree Oil%'\n" +
+    "    OR i.display_name ILIKE '%Niacinamide%'\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:20.155Z] DEBUG: Generated SQL {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    '  AND (\n' +
+    "    i.display_name ILIKE '%Salicylic Acid%'\n" +
+    "    OR i.display_name ILIKE '%Tea Tree Oil%'\n" +
+    "    OR i.display_name ILIKE '%Niacinamide%'\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:20.155Z] DEBUG: Metadata {
+  concerns: [ "'acne'", "'oil_control'", "'pore_minimizing'", "'redness'" ],
+  excludedIngredients: [],
+  priceRange: null,
+  productType: null,
+  confidence: 0.9
+}
+[2025-06-22T12:06:20.185Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:20.185Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:20.235Z] DEBUG: RPC 'exec_sql' executed successfully {}
+[2025-06-22T12:06:20.236Z] DEBUG: AI SQL generation yielded no products, falling back to standard search logic {}
+[2025-06-22T12:06:20.236Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:20.294Z] DEBUG: No matching ingredients found for { ingredient: [ 'salicylic acid', 'tea tree oil', 'niacinamide' ] }
+[2025-06-22T12:06:20.414Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:20.414Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:20.414Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:20.481Z] INFO: Found matching product {
+  productId: 'copy-of-coffee-face-care-kit',
+  productName: 'Green Tea Face Wash - 10ml',
+  brand: 'Mcaffine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:20.481Z] INFO: Finding matching products {
+  productType: 'Toner',
+  keyIngredients: [ 'Witch Hazel', 'Glycolic Acid (low concentration)', 'Aloe Vera' ],
+  searchQuery: 'Toner with Witch Hazel Glycolic Acid (low concentration) Aloe Vera'
+}
+[2025-06-22T12:06:20.482Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:20.594Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:20.714Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:20.715Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:20.715Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:20.715Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:20.715Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:20.715Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:20.715Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:20.715Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:21.725Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:21.725Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:22.266Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%hyaluronic acid%' OR i.inci_name ILIKE '%hyaluronate%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:22.266Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%hyaluronic acid%' OR i.inci_name ILIKE '%hyaluronate%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:22.266Z] DEBUG: Generated SQL {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%hyaluronic acid%' OR i.inci_name ILIKE '%hyaluronate%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:22.267Z] DEBUG: Metadata {
+  concerns: [ "'hydration'", "'anti-aging'", "'brightening'" ],
+  excludedIngredients: [],
+  priceRange: null,
+  productType: null,
+  confidence: 0.9
+}
+[2025-06-22T12:06:22.329Z] DEBUG: RPC 'exec_sql' executed successfully {}
+[2025-06-22T12:06:22.329Z] DEBUG: Retrieved 1 products via SQL for ranking {}
+[2025-06-22T12:06:22.329Z] DEBUG: Ranking 1 products with personalized AI ranking {}
+[2025-06-22T12:06:22.329Z] DEBUG: Ranked 1 products with personalized criteria {}
+[2025-06-22T12:06:22.386Z] INFO: Found matching product {
+  productId: 'vitamin-c-daily-glow-face-serum-with-vitamin-c-turmeric-for-radiant-skin-30-ml',
+  productName: 'Vitamin C Daily Glow Face Serum With Vitamin C & Turmeric for Radiant Skin - 30 ml',
+  brand: 'Mamaearth',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:22.387Z] INFO: Finding matching products {
+  productType: 'Sunscreen',
+  keyIngredients: [ 'Zinc Oxide', 'Titanium Dioxide' ],
+  searchQuery: 'Sunscreen with Zinc Oxide Titanium Dioxide'
+}
+[2025-06-22T12:06:22.387Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:22.509Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:22.615Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:22.615Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:22.615Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:22.615Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:22.615Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:22.615Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:22.615Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:22.615Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:23.627Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:23.627Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:23.693Z] DEBUG: No matching ingredients found for { ingredient: 'Zinc Oxide Titanium Dioxide' }
+[2025-06-22T12:06:23.842Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:23.842Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:23.842Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:23.895Z] INFO: Found matching product {
+  productId: 'coffee-sunscreen-lotion-spf-50-pa',
+  productName: 'Detan & Oil Control Coffee Sunscreen SPF 50 PA++++ 50 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:23.895Z] INFO: Finding matching products {
+  productType: 'Oil Cleanser',
+  keyIngredients: [ 'Jojoba Oil', 'Tea Tree Oil' ],
+  searchQuery: 'Oil Cleanser with Jojoba Oil Tea Tree Oil'
+}
+[2025-06-22T12:06:23.895Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:24.008Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:24.143Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:24.143Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:24.143Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:24.143Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:24.143Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:24.143Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:24.143Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:24.143Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:25.161Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:25.161Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:28.368Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%toner%'\n" +
+    "  AND (i.display_name ILIKE '%Witch Hazel%' OR i.inci_name ILIKE '%Hamamelis Virginiana%')\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM jsonb_array_elements(p.ingredients_extracted) AS elem\n' +
+    "    WHERE elem ->> 'name' ILIKE '%Glycolic Acid%'\n" +
+    "      AND (elem ->> 'concentration' ILIKE '%low%' OR elem ->> 'concentration' ILIKE '%0.%' OR elem ->> 'concentration' ILIKE '%1%' OR elem ->> 'concentration' ILIKE '%2%' OR elem ->> 'concentration' ILIKE '%3%') --match products that say they have a low concentration, or any products under 3% glycolic acid\n" +
+    '  )\n' +
+    "  AND (i.display_name ILIKE '%Aloe Vera%' OR i.inci_name ILIKE '%Aloe Barbadensis%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:28.369Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%toner%'\n" +
+    "  AND (i.display_name ILIKE '%Witch Hazel%' OR i.inci_name ILIKE '%Hamamelis Virginiana%')\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM jsonb_array_elements(p.ingredients_extracted) AS elem\n' +
+    "    WHERE elem ->> 'name' ILIKE '%Glycolic Acid%'\n" +
+    "      AND (elem ->> 'concentration' ILIKE '%low%' OR elem ->> 'concentration' ILIKE '%0.%' OR elem ->> 'concentration' ILIKE '%1%' OR elem ->> 'concentration' ILIKE '%2%' OR elem ->> 'concentration' ILIKE '%3%') \n" +
+    '  )\n' +
+    "  AND (i.display_name ILIKE '%Aloe Vera%' OR i.inci_name ILIKE '%Aloe Barbadensis%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:28.369Z] ERROR: Error generating SQL {
+  error: 'Invalid table name: jsonb_array_elements',
+  userQuery: 'Toner with Witch Hazel Glycolic Acid (low concentration) Aloe Vera'
+}
+[2025-06-22T12:06:28.369Z] ERROR: Error in enhanced search { error: 'Invalid table name: jsonb_array_elements' }
+[2025-06-22T12:06:28.370Z] WARN: Error during AI SQL search, falling back to standard search logic { error: 'Invalid table name: jsonb_array_elements' }
+[2025-06-22T12:06:28.370Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:28.595Z] DEBUG: No matching ingredients found for { ingredient: 'witch hazel' }
+[2025-06-22T12:06:28.712Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:28.712Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:28.712Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:28.787Z] INFO: Found matching product {
+  productId: 'toner-serum-bha-salicylic-acid-2-coffee',
+  productName: 'BHA-2% Salicylic Acid 2in1 Toner-Serum with Coffee - Unclogs Pores & Reduces Blackheads - 150 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:28.787Z] INFO: Finding matching products {
+  productType: 'Serum',
+  keyIngredients: [ 'Vitamin C', 'Niacinamide' ],
+  searchQuery: 'Serum with Vitamin C Niacinamide'
+}
+[2025-06-22T12:06:28.787Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:28.809Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND p.product_name ILIKE '%oil%'\n" +
+    "  AND (i.display_name ILIKE '%jojoba oil%' OR i.inci_name ILIKE '%jojoba oil%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:28.810Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND p.product_name ILIKE '%oil%'\n" +
+    "  AND (i.display_name ILIKE '%jojoba oil%' OR i.inci_name ILIKE '%jojoba oil%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:28.810Z] DEBUG: Generated SQL {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    'JOIN product_ingredients pi ON p.product_id = pi.product_id\n' +
+    'JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    "WHERE p.category_path ILIKE '%cleanser%'\n" +
+    "  AND p.product_name ILIKE '%oil%'\n" +
+    "  AND (i.display_name ILIKE '%jojoba oil%' OR i.inci_name ILIKE '%jojoba oil%')\n" +
+    "  AND (i.display_name ILIKE '%tea tree oil%' OR i.inci_name ILIKE '%tea tree oil%')\n" +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:28.810Z] DEBUG: Metadata {
+  concerns: [],
+  excludedIngredients: [],
+  priceRange: null,
+  productType: null,
+  confidence: 1
+}
+[2025-06-22T12:06:28.892Z] DEBUG: RPC 'exec_sql' executed successfully {}
+[2025-06-22T12:06:28.892Z] DEBUG: AI SQL generation yielded no products, falling back to standard search logic {}
+[2025-06-22T12:06:28.892Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:28.900Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:28.942Z] DEBUG: No matching ingredients found for { ingredient: 'jojoba oil, tea tree oil' }
+[2025-06-22T12:06:29.002Z] DEBUG: Retrieved 0 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:29.002Z] WARN: No matching product found {
+  productType: 'Oil Cleanser',
+  keyIngredients: [ 'Jojoba Oil', 'Tea Tree Oil' ]
+}
+[2025-06-22T12:06:29.002Z] INFO: Finding matching products {
+  productType: 'Cleanser',
+  keyIngredients: [ 'Salicylic Acid', 'Glycolic Acid' ],
+  searchQuery: 'Cleanser with Salicylic Acid Glycolic Acid'
+}
+[2025-06-22T12:06:29.003Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:29.015Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:29.015Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:29.015Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:29.015Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:29.015Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:29.015Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:29.016Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:29.016Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:29.126Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:29.260Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:29.260Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:29.261Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:29.261Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:29.261Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:29.261Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:29.261Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:29.261Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:30.005Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:30.005Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:30.348Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:30.349Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:30.407Z] DEBUG: No matching ingredients found for { ingredient: 'salicylic acid' }
+[2025-06-22T12:06:30.547Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:30.547Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:30.547Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:30.613Z] INFO: Found matching product {
+  productId: 'copy-of-coffee-face-care-kit',
+  productName: 'Green Tea Face Wash - 10ml',
+  brand: 'Mcaffine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:30.613Z] INFO: Finding matching products {
+  productType: 'Toner',
+  keyIngredients: [ 'Glycolic Acid', 'Lactic Acid' ],
+  searchQuery: 'Toner with Glycolic Acid Lactic Acid'
+}
+[2025-06-22T12:06:30.614Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:30.737Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:30.866Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:30.867Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:30.867Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:30.867Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:30.867Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:30.867Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:30.867Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:30.867Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:31.211Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"28s"}]'
+}
+[2025-06-22T12:06:31.211Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:31.211Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:31.300Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:31.301Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:31.301Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:31.354Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:31.355Z] INFO: Finding matching products {
+  productType: 'Serum',
+  keyIngredients: [ 'Retinol', 'Niacinamide' ],
+  searchQuery: 'Serum with Retinol Niacinamide'
+}
+[2025-06-22T12:06:31.355Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:31.472Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:31.591Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:31.591Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:31.591Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:31.591Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:31.591Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:31.591Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:31.591Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:31.591Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:33.279Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:33.279Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:33.676Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"26s"}]',
+  userQuery: 'Serum with Retinol Niacinamide'
+}
+[2025-06-22T12:06:33.677Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"26s"}]'
+}
+[2025-06-22T12:06:33.677Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"26s"}]'
+}
+[2025-06-22T12:06:33.677Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:33.727Z] DEBUG: No matching ingredients found for { ingredient: [ 'retinol', 'niacinamide' ] }
+[2025-06-22T12:06:33.828Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:33.828Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:33.828Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:33.882Z] INFO: Found matching product {
+  productId: 'green-tea-10-niacinamide-face-serum-for-blemish-free-skin-30-ml-1',
+  productName: 'Green Tea & 10% Niacinamide Face Serum for Blemish Free Skin - 30 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:33.883Z] INFO: Finding matching products {
+  productType: 'Lightweight Moisturizer',
+  keyIngredients: [ 'Hyaluronic Acid', 'Ceramides' ],
+  searchQuery: 'Lightweight Moisturizer with Hyaluronic Acid Ceramides'
+}
+[2025-06-22T12:06:33.883Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:33.986Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:34.096Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:34.096Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:34.096Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:34.096Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:34.096Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:34.096Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:34.097Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:34.097Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:34.593Z] DEBUG: Generated SQL (raw from model) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%niacinamide%' OR i.inci_name ILIKE '%niacinamide%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10;'
+}
+[2025-06-22T12:06:34.593Z] DEBUG: Generated SQL (post-sanitization) {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%niacinamide%' OR i.inci_name ILIKE '%niacinamide%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:34.594Z] DEBUG: Generated SQL {
+  sql: 'SELECT DISTINCT p.*\n' +
+    'FROM products p\n' +
+    "WHERE p.product_name ILIKE '%serum%'\n" +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%vitamin c%' OR i.inci_name ILIKE '%ascorbic acid%')\n" +
+    '  )\n' +
+    '  AND EXISTS (\n' +
+    '    SELECT 1\n' +
+    '    FROM product_ingredients pi\n' +
+    '    JOIN ingredients i ON pi.ingredient_id = i.id\n' +
+    '    WHERE pi.product_id = p.product_id\n' +
+    "      AND (i.display_name ILIKE '%niacinamide%' OR i.inci_name ILIKE '%niacinamide%')\n" +
+    '  )\n' +
+    'ORDER BY p.rating_avg DESC NULLS LAST\n' +
+    'LIMIT 10'
+}
+[2025-06-22T12:06:34.594Z] DEBUG: Metadata {
+  concerns: [],
+  excludedIngredients: [],
+  priceRange: null,
+  productType: null,
+  confidence: 1
+}
+[2025-06-22T12:06:34.658Z] DEBUG: RPC 'exec_sql' executed successfully {}
+[2025-06-22T12:06:34.658Z] DEBUG: AI SQL generation yielded no products, falling back to standard search logic {}
+[2025-06-22T12:06:34.659Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:34.713Z] DEBUG: No matching ingredients found for { ingredient: 'niacinamide' }
+[2025-06-22T12:06:34.804Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:34.804Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:34.804Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:34.861Z] INFO: Found matching product {
+  productId: 'green-tea-10-niacinamide-face-serum-for-blemish-free-skin-30-ml-1',
+  productName: 'Green Tea & 10% Niacinamide Face Serum for Blemish Free Skin - 30 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:34.861Z] INFO: Finding matching products {
+  productType: 'Lightweight Moisturizer',
+  keyIngredients: [ 'Hyaluronic Acid', 'Glycerin', 'Ceramides' ],
+  searchQuery: 'Lightweight Moisturizer with Hyaluronic Acid Glycerin Ceramides'
+}
+[2025-06-22T12:06:34.861Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:34.884Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"25s"}]'
+}
+[2025-06-22T12:06:34.885Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:34.885Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:34.982Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:35.006Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:35.006Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:35.006Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:35.076Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:35.077Z] INFO: Finding matching products {
+  productType: 'Clay Mask',
+  keyIngredients: [ 'Bentonite Clay', 'Activated Charcoal' ],
+  searchQuery: 'Clay Mask with Bentonite Clay Activated Charcoal'
+}
+[2025-06-22T12:06:35.077Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:35.110Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:35.110Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.110Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.110Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:35.110Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:35.110Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:35.110Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:35.110Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:35.196Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:35.309Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:35.309Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.309Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.309Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:35.309Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:35.309Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:35.309Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:35.309Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:35.435Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"24s"}]'
+}
+[2025-06-22T12:06:35.436Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:35.436Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:35.539Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:35.540Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:35.540Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:35.614Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:35.615Z] INFO: Finding matching products {
+  productType: 'Sunscreen',
+  keyIngredients: [
+    'Broad Spectrum SPF 30 or higher (Mineral Sunscreen)',
+    'Zinc Oxide',
+    'Titanium Dioxide'
+  ],
+  searchQuery: 'Sunscreen with Broad Spectrum SPF 30 or higher (Mineral Sunscreen) Zinc Oxide Titanium Dioxide'
+}
+[2025-06-22T12:06:35.615Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:35.700Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"24s"}]'
+}
+[2025-06-22T12:06:35.700Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:35.701Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:35.732Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:35.797Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:35.797Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:35.797Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:35.853Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:35.854Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.854Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:35.854Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:35.854Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:35.854Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:35.854Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:35.854Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:35.858Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:35.923Z] ERROR: Save recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache"
+}
+[2025-06-22T12:06:35.923Z] ERROR: Save recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache"
+}
+[2025-06-22T12:06:35.923Z] ERROR: Generate recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache",
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c'
+}
+[2025-06-22T12:06:35.923Z] ERROR: Auto recommendation regeneration failed {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache",
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c'
+}
+[2025-06-22T12:06:36.741Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"23s"}]'
+}
+[2025-06-22T12:06:36.742Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:36.742Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:37.462Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"22s"}]',
+  userQuery: 'Sunscreen with Broad Spectrum SPF 30 or higher (Mineral Sunscreen) Zinc Oxide Titanium Dioxide'
+}
+[2025-06-22T12:06:37.463Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"22s"}]'
+}
+[2025-06-22T12:06:37.463Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"22s"}]'
+}
+[2025-06-22T12:06:37.463Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:37.549Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:37.549Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:37.549Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:37.602Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:37.603Z] INFO: Finding matching products {
+  productType: 'Oil Cleanser (Optional)',
+  keyIngredients: [ 'Jojoba Oil', 'Grapeseed Oil' ],
+  searchQuery: 'Oil Cleanser (Optional) with Jojoba Oil Grapeseed Oil'
+}
+[2025-06-22T12:06:37.604Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:37.711Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:37.842Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:37.842Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:37.842Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:37.842Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:37.843Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:37.843Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:37.843Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:37.843Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:38.327Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"21s"}]'
+}
+[2025-06-22T12:06:38.328Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:38.328Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:39.474Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"20s"}]',
+  userQuery: 'Oil Cleanser (Optional) with Jojoba Oil Grapeseed Oil'
+}
+[2025-06-22T12:06:39.475Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"20s"}]'
+}
+[2025-06-22T12:06:39.475Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"20s"}]'
+}
+[2025-06-22T12:06:39.475Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:39.561Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:39.561Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:39.561Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:39.615Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:39.615Z] INFO: Finding matching products {
+  productType: 'Cleanser',
+  keyIngredients: [ 'Salicylic Acid', 'Tea Tree Oil', 'Niacinamide' ],
+  searchQuery: 'Cleanser with Salicylic Acid Tea Tree Oil Niacinamide'
+}
+[2025-06-22T12:06:39.615Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:39.721Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:39.838Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:39.839Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:39.840Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:39.840Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:39.840Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:39.840Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:39.840Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:39.840Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:40.224Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"19s"}]'
+}
+[2025-06-22T12:06:40.225Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:40.225Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:41.436Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"18s"}]',
+  userQuery: 'Cleanser with Salicylic Acid Tea Tree Oil Niacinamide'
+}
+[2025-06-22T12:06:41.437Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"18s"}]'
+}
+[2025-06-22T12:06:41.437Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"18s"}]'
+}
+[2025-06-22T12:06:41.437Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:41.531Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:41.531Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:41.531Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:41.585Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:41.585Z] INFO: Finding matching products {
+  productType: 'Toner',
+  keyIngredients: [ 'Glycolic Acid (low concentration)', 'Lactic Acid' ],
+  searchQuery: 'Toner with Glycolic Acid (low concentration) Lactic Acid'
+}
+[2025-06-22T12:06:41.585Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:41.694Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:41.805Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:41.806Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:41.806Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:41.806Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:41.806Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:41.806Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:41.806Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:41.806Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:42.119Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"18s"}]'
+}
+[2025-06-22T12:06:42.119Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:42.119Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:42.208Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:42.208Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:42.208Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:42.262Z] INFO: Found matching product {
+  productId: 'green-tea-body-1-bha-salicylic-acid',
+  productName: 'Green Tea & 1% BHA-Salicylic Acid Body Wash | Controls Body & Back Acne - 200 ml',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:42.262Z] INFO: Finding matching products {
+  productType: 'Acne Treatment Serum',
+  keyIngredients: [ 'Retinol (low concentration)', 'Salicylic Acid' ],
+  searchQuery: 'Acne Treatment Serum with Retinol (low concentration) Salicylic Acid'
+}
+[2025-06-22T12:06:42.262Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:42.374Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:42.486Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:42.486Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:42.486Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:42.486Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:42.487Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:42.487Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:42.487Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:42.487Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:43.390Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"16s"}]'
+}
+[2025-06-22T12:06:43.390Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:43.391Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:44.242Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"15s"}]',
+  userQuery: 'Acne Treatment Serum with Retinol (low concentration) Salicylic Acid'
+}
+[2025-06-22T12:06:44.242Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"15s"}]'
+}
+[2025-06-22T12:06:44.242Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"15s"}]'
+}
+[2025-06-22T12:06:44.243Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:44.329Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:44.329Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:44.329Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:44.379Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:44.380Z] INFO: Finding matching products {
+  productType: 'Lightweight Moisturizer',
+  keyIngredients: [ 'Hyaluronic Acid', 'Glycerin', 'Ceramides' ],
+  searchQuery: 'Lightweight Moisturizer with Hyaluronic Acid Glycerin Ceramides'
+}
+[2025-06-22T12:06:44.380Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:44.492Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:44.608Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:44.608Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:44.608Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:44.608Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:44.608Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:44.608Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:44.608Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:44.608Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:45.020Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"15s"}]'
+}
+[2025-06-22T12:06:45.020Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:45.021Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:45.109Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:45.109Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:45.109Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:45.162Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:45.162Z] INFO: Finding matching products {
+  productType: 'Spot Treatment (as needed)',
+  keyIngredients: [ 'Benzoyl Peroxide (2.5-5%)', 'Tea Tree Oil' ],
+  searchQuery: 'Spot Treatment (as needed) with Benzoyl Peroxide (2.5-5%) Tea Tree Oil'
+}
+[2025-06-22T12:06:45.163Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:45.267Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:45.375Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:45.375Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:45.375Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:45.375Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:45.375Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:45.375Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:45.375Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:45.375Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:46.238Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"13s"}]'
+}
+[2025-06-22T12:06:46.238Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:46.238Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:47.006Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"13s"}]',
+  userQuery: 'Spot Treatment (as needed) with Benzoyl Peroxide (2.5-5%) Tea Tree Oil'
+}
+[2025-06-22T12:06:47.007Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"13s"}]'
+}
+[2025-06-22T12:06:47.007Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"13s"}]'
+}
+[2025-06-22T12:06:47.007Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:47.381Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:47.381Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:47.381Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:47.429Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:47.429Z] INFO: Finding matching products {
+  productType: 'Clay Mask',
+  keyIngredients: [ 'Bentonite Clay', 'Kaolin Clay', 'Activated Charcoal' ],
+  searchQuery: 'Clay Mask with Bentonite Clay Kaolin Clay Activated Charcoal'
+}
+[2025-06-22T12:06:47.430Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:47.541Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:47.646Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:47.647Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:47.647Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:47.647Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:47.647Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:47.647Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:47.647Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:47.647Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:48.006Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"12s"}]'
+}
+[2025-06-22T12:06:48.006Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:48.006Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:49.262Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"10s"}]',
+  userQuery: 'Clay Mask with Bentonite Clay Kaolin Clay Activated Charcoal'
+}
+[2025-06-22T12:06:49.262Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"10s"}]'
+}
+[2025-06-22T12:06:49.262Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"10s"}]'
+}
+[2025-06-22T12:06:49.262Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:49.376Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:49.376Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:49.376Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:49.429Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:49.429Z] INFO: Finding matching products {
+  productType: 'Exfoliating Scrub (Gentle)',
+  keyIngredients: [ 'Jojoba Beads', 'Sugar', 'Rice Bran' ],
+  searchQuery: 'Exfoliating Scrub (Gentle) with Jojoba Beads Sugar Rice Bran'
+}
+[2025-06-22T12:06:49.430Z] DEBUG: Getting user context for personalization (userId: 3d96c307-8edb-41fd-af1f-e97c422c842c) {}
+[2025-06-22T12:06:49.546Z] DEBUG: Getting user context for user 3d96c307-8edb-41fd-af1f-e97c422c842c {
+  hasProfile: true,
+  profileSections: [
+    'skin_profiles',
+    'hair_profiles',
+    'lifestyle_demographics',
+    'health_medical_conditions',
+    'makeup_preferences'
+  ]
+}
+[2025-06-22T12:06:49.664Z] DEBUG: Profile completeness calculation: 5/5 sections completed {}
+[2025-06-22T12:06:49.664Z] DEBUG: skin_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:49.664Z] DEBUG: hair_profiles: ✅ Completed (array) {}
+[2025-06-22T12:06:49.664Z] DEBUG: lifestyle_demographics: ✅ Completed (array) {}
+[2025-06-22T12:06:49.664Z] DEBUG: health_medical_conditions: ✅ Completed (array) {}
+[2025-06-22T12:06:49.664Z] DEBUG: makeup_preferences: ✅ Completed (array) {}
+[2025-06-22T12:06:49.664Z] DEBUG: User context retrieved - Profile completeness: 100% {}
+[2025-06-22T12:06:49.664Z] DEBUG: Parsing and standardizing query with user context {}
+[2025-06-22T12:06:49.968Z] ERROR: Error parsing query with Gemini {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"10s"}]'
+}
+[2025-06-22T12:06:49.968Z] DEBUG: Parsed query with context { hasUserContext: true, queryType: undefined }
+[2025-06-22T12:06:49.968Z] DEBUG: Using AI-powered SQL generation for complex query {}
+[2025-06-22T12:06:51.284Z] ERROR: Error generating SQL {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"8s"}]',
+  userQuery: 'Exfoliating Scrub (Gentle) with Jojoba Beads Sugar Rice Bran'
+}
+[2025-06-22T12:06:51.285Z] ERROR: Error in enhanced search {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"8s"}]'
+}
+[2025-06-22T12:06:51.285Z] WARN: Error during AI SQL search, falling back to standard search logic {
+  error: '[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-2.0-flash","location":"global"},"quotaValue":"15"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"8s"}]'
+}
+[2025-06-22T12:06:51.285Z] DEBUG: Using personalized product search {}
+[2025-06-22T12:06:51.369Z] DEBUG: Retrieved 25 products via personalized-retrieval for ranking {}
+[2025-06-22T12:06:51.369Z] DEBUG: Ranking 25 products with personalized AI ranking {}
+[2025-06-22T12:06:51.369Z] DEBUG: Ranked 5 products with personalized criteria {}
+[2025-06-22T12:06:51.419Z] INFO: Found matching product {
+  productId: 'fruit-aha-mix-green-tea-sheet-mask-for-acne-oil-control-20g-2',
+  productName: 'Fruit AHA Mix Green Tea Sheet Mask for Acne & Oil Control - 20g',
+  brand: 'Mcaffeine',
+  matchReason: 'Most budget-friendly option with good value'
+}
+[2025-06-22T12:06:51.490Z] ERROR: Save recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache"
+}
+[2025-06-22T12:06:51.490Z] ERROR: Save recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache"
+}
+[2025-06-22T12:06:51.490Z] ERROR: Generate recommendations error {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache",
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c'
+}
+[2025-06-22T12:06:51.490Z] ERROR: Auto recommendation regeneration failed {
+  error: "Could not find the 'ai_match_score' column of 'product_recommendations' in the schema cache",
+  userId: '3d96c307-8edb-41fd-af1f-e97c422c842c'
+}

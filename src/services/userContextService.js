@@ -34,24 +34,83 @@ class UserContextService {
    * Get complete user profile with all related data
    */
   async getUserCompleteProfile(userId) {
-    const { data: profile, error } = await supabase
+    const { data: userProfile, error: userError } = await supabase
       .from('users')
       .select(`
         id, email, first_name, last_name, phone, date_of_birth, gender, 
-        profile_completed, created_at, updated_at,
-        skin_profiles(*),
-        hair_profiles(*),
-        lifestyle_demographics(*),
-        health_medical_conditions(*),
-        makeup_preferences(*)
+        profile_completed, created_at, updated_at
       `)
       .eq('id', userId)
       .single();
 
-    if (error) {
-      Logger.error('Error fetching user profile', { error: error.message, userId });
+    if (userError) {
+      Logger.error('Error fetching user profile', { error: userError.message, userId });
       return null;
     }
+
+    // Get beauty profile
+    const { data: beautyProfile, error: beautyError } = await supabase
+      .from('beauty_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (beautyError && beautyError.code !== 'PGRST116') {
+      Logger.error('Error fetching beauty profile', { error: beautyError.message, userId });
+    }
+
+    // Structure to match old format for backward compatibility
+    const profile = {
+      ...userProfile,
+      // Map beauty_profiles fields to old structure
+      skin_profiles: beautyProfile ? [{
+        skin_type: beautyProfile.skin_type,
+        skin_tone: beautyProfile.skin_tone,
+        undertone: beautyProfile.undertone,
+        fitzpatrick_phototype: beautyProfile.fitzpatrick_phototype,
+        primary_concerns: beautyProfile.primary_skin_concerns,
+        skin_sensitivity: beautyProfile.skin_sensitivity_level,
+        known_allergies: beautyProfile.known_allergies,
+        daily_sun_exposure: beautyProfile.sun_exposure_daily,
+        sunscreen_usage: beautyProfile.sunscreen_usage
+      }] : [],
+      hair_profiles: beautyProfile ? [{
+        hair_pattern: beautyProfile.hair_type,
+        hair_texture: beautyProfile.hair_texture,
+        hair_thickness: beautyProfile.hair_texture,
+        scalp_type: beautyProfile.scalp_condition,
+        scalp_concerns: [],
+        hair_concerns: beautyProfile.hair_concerns,
+        chemical_treatments: beautyProfile.chemical_treatments,
+        heat_styling_frequency: beautyProfile.heat_styling_frequency
+      }] : [],
+      lifestyle_demographics: beautyProfile ? [{
+        location: `${beautyProfile.location_city || ''}, ${beautyProfile.location_country || ''}`.trim(),
+        climate: beautyProfile.climate_type,
+        pollution_exposure: beautyProfile.pollution_level,
+        water_quality: beautyProfile.water_quality,
+        diet_pattern: beautyProfile.dietary_type,
+        exercise_frequency: beautyProfile.exercise_frequency,
+        stress_level: beautyProfile.stress_level,
+        sleep_quality: beautyProfile.sleep_hours_avg
+      }] : [],
+      health_medical_conditions: beautyProfile ? [{
+        allergies_intolerances: beautyProfile.known_allergies,
+        hormonal_status: beautyProfile.hormonal_status,
+        medications: beautyProfile.medications,
+        skin_conditions: beautyProfile.skin_medical_conditions
+      }] : [],
+      makeup_preferences: beautyProfile ? [{
+        foundation_shade: null,
+        foundation_undertone: beautyProfile.undertone,
+        finish_preference: beautyProfile.coverage_preference,
+        makeup_style: beautyProfile.preferred_look,
+        makeup_frequency: beautyProfile.makeup_frequency,
+        favorite_colors: [],
+        budget_range: beautyProfile.budget_range,
+        favorite_brands: beautyProfile.favorite_brands
+      }] : []
+    };
 
     return profile;
   }

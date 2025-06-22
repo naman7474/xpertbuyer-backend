@@ -106,15 +106,26 @@ class BeautyProfileService {
 
     switch (section) {
       case 'skin':
+        // Debug log the incoming data
+        Logger.info('Preparing skin update data', { 
+          incomingData: data,
+          mappedValues: {
+            skin_type: data.skin_type,
+            skin_tone: data.skin_tone,
+            undertone: data.undertone,
+            skin_sensitivity: data.skin_sensitivity || data.sensitivity_level
+          }
+        });
+        
         return {
           ...updateData,
           skin_type: data.skin_type,
           skin_tone: data.skin_tone,
           undertone: data.undertone,
-          primary_skin_concerns: data.primary_concerns,
-          secondary_skin_concerns: data.secondary_concerns,
-          skin_sensitivity_level: data.sensitivity_level,
-          known_allergies: data.allergies
+          primary_skin_concerns: data.primary_skin_concerns || data.primary_concerns,
+          secondary_skin_concerns: data.secondary_skin_concerns,
+          skin_sensitivity: data.skin_sensitivity || data.sensitivity_level,
+          known_allergies: data.known_allergies || data.allergies
         };
 
       case 'hair':
@@ -130,6 +141,28 @@ class BeautyProfileService {
 
       case 'lifestyle':
         const locationParts = data.location ? data.location.split(',') : ['', ''];
+        
+        // Map exercise frequency to database values
+        const exerciseFrequencyMap = {
+          'Never': 'sedentary',
+          'Rarely': 'light', 
+          'Weekly': 'moderate',
+          '3-4x/week': 'active',
+          'Daily': 'very_active'
+        };
+        
+        // Debug log the incoming data
+        Logger.info('Preparing lifestyle update data', { 
+          incomingData: data,
+          mappedValues: {
+            climate_type: data.climate_type,
+            pollution_level: data.pollution_level,
+            sun_exposure_daily: data.sun_exposure,
+            stress_level: data.stress_level,
+            exercise_frequency: exerciseFrequencyMap[data.exercise_frequency] || data.exercise_frequency
+          }
+        });
+        
         return {
           ...updateData,
           location_city: locationParts[0]?.trim(),
@@ -139,7 +172,7 @@ class BeautyProfileService {
           sun_exposure_daily: data.sun_exposure,
           sleep_hours_avg: data.sleep_hours,
           stress_level: data.stress_level,
-          exercise_frequency: data.exercise_frequency,
+          exercise_frequency: exerciseFrequencyMap[data.exercise_frequency] || data.exercise_frequency,
           water_intake_daily: data.water_intake
         };
 
@@ -184,16 +217,24 @@ class BeautyProfileService {
         completion: completion.overall 
       });
 
-      // Check if we should trigger recommendations
+      // Always try to regenerate recommendations on profile update (force = true)
       const shouldTriggerRecommendations = await this.shouldTriggerRecommendations(
         userId, 
-        completion
+        completion,
+        true  // Force regenerate on profile updates
       );
 
       if (shouldTriggerRecommendations.should) {
-        Logger.info('Triggering automatic recommendations', { userId, reason: shouldTriggerRecommendations.reason });
+        Logger.info('Regenerating recommendations after profile update', { 
+          userId, 
+          section,
+          reason: shouldTriggerRecommendations.reason 
+        });
         
         try {
+          // Delete existing recommendations for this user to regenerate fresh ones
+          await this.clearExistingRecommendations(userId);
+          
           const recommendations = await beautyRecommendationService.generateRecommendations(userId);
           
           // Mark recommendations as generated
@@ -201,8 +242,9 @@ class BeautyProfileService {
           
           return {
             triggered: true,
-            reason: 'recommendations_generated',
+            reason: 'recommendations_regenerated',
             profileCompletion: completion.overall,
+            sectionUpdated: section,
             recommendationCount: {
               morning: recommendations.routine?.morning?.length || 0,
               evening: recommendations.routine?.evening?.length || 0,
@@ -210,7 +252,7 @@ class BeautyProfileService {
             }
           };
         } catch (recError) {
-          Logger.error('Auto recommendation generation failed', { error: recError.message, userId });
+          Logger.error('Auto recommendation regeneration failed', { error: recError.message, userId });
         }
       }
 
@@ -232,14 +274,35 @@ class BeautyProfileService {
   }
 
   /**
+   * Clear existing recommendations for regeneration
+   */
+  async clearExistingRecommendations(userId) {
+    try {
+      const { error } = await supabase
+        .from('product_recommendations')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) {
+        Logger.warn('Failed to clear existing recommendations', { error: error.message, userId });
+      } else {
+        Logger.info('Cleared existing recommendations for regeneration', { userId });
+      }
+    } catch (error) {
+      Logger.error('Error clearing recommendations', { error: error.message, userId });
+    }
+  }
+
+  /**
    * Check if we should trigger recommendations
    */
-  async shouldTriggerRecommendations(userId, completion) {
-    // Profile must be complete
-    if (!completion.isComplete) {
+  async shouldTriggerRecommendations(userId, completion, forceRegenerate = false) {
+    // Check minimum profile requirements (much more lenient)
+    const hasMinimumProfile = this.hasMinimumProfileData(completion);
+    if (!hasMinimumProfile) {
       return {
         should: false,
-        reason: 'profile_incomplete',
+        reason: 'insufficient_profile_data',
         missing: completion.missingFields
       };
     }
@@ -264,10 +327,20 @@ class BeautyProfileService {
       };
     }
 
-    // Check if recommendations already exist for this analysis
+    // If force regenerate (profile update), always trigger
+    if (forceRegenerate) {
+      return {
+        should: true,
+        reason: 'profile_updated',
+        analysisId: latestPhoto.photo_analyses[0].id,
+        regenerating: true
+      };
+    }
+
+    // For new photo analysis, check if recommendations already exist
     const { data: existingRecs } = await supabase
       .from('product_recommendations')
-      .select('id')
+      .select('id, created_at')
       .eq('user_id', userId)
       .eq('analysis_id', latestPhoto.photo_analyses[0].id)
       .limit(1);
@@ -275,7 +348,8 @@ class BeautyProfileService {
     if (existingRecs && existingRecs.length > 0) {
       return {
         should: false,
-        reason: 'recommendations_exist'
+        reason: 'recommendations_exist',
+        existingRecommendations: existingRecs[0]
       };
     }
 
@@ -284,6 +358,28 @@ class BeautyProfileService {
       reason: 'conditions_met',
       analysisId: latestPhoto.photo_analyses[0].id
     };
+  }
+
+  /**
+   * Check if user has minimum profile data needed for recommendations
+   */
+  hasMinimumProfileData(completion) {
+    // Minimum requirements: at least 40% completion OR basic skin info
+    if (completion.overall >= 40) {
+      return true;
+    }
+
+    // Alternative: check if we have essential skin data
+    const essentialFields = [
+      'skin.skin_type',
+      'skin.primary_concerns'
+    ];
+
+    const hasEssentials = essentialFields.every(field => 
+      !completion.missingFields.includes(field)
+    );
+
+    return hasEssentials;
   }
 
   /**
@@ -308,8 +404,24 @@ class BeautyProfileService {
    */
   async getOnboardingStatus(userId) {
     try {
-      // Get profile completion
-      const { profile, completion } = await this.getProfile(userId);
+      // Get profile data directly from database instead of calling getProfile to avoid recursion
+      const { data: profile, error: profileError } = await supabase
+        .from('beauty_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
+
+      // Calculate completion directly instead of calling getProfile
+      const completion = profile ? checkProfileCompletion(profile) : { 
+        overall: 0, 
+        isComplete: false, 
+        sections: {}, 
+        missingFields: [] 
+      };
 
       // Get photo status
       const { data: photos } = await supabase
@@ -408,17 +520,34 @@ class BeautyProfileService {
         analysisId 
       });
 
-      // Get current profile
-      const { profile, completion } = await this.getProfile(userId);
+      // Get current profile directly from database to avoid recursion
+      const { data: profile, error: profileError } = await supabase
+        .from('beauty_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
       
       if (!profile) {
         return { triggered: false, reason: 'no_profile' };
       }
 
-      // Check if we should trigger recommendations
-      const shouldTrigger = await this.shouldTriggerRecommendations(userId, completion);
+      // Calculate completion directly
+      const completion = checkProfileCompletion(profile);
+
+      // Check if we should trigger recommendations (no force, this is new photo)
+      const shouldTrigger = await this.shouldTriggerRecommendations(userId, completion, false);
       
       if (shouldTrigger.should) {
+        Logger.info('Generating initial recommendations after photo analysis', { 
+          userId,
+          profileCompletion: completion.overall,
+          reason: shouldTrigger.reason
+        });
+        
         try {
           const recommendations = await beautyRecommendationService.generateRecommendations(userId);
           await this.markRecommendationsGenerated(userId);
@@ -426,6 +555,8 @@ class BeautyProfileService {
           return {
             triggered: true,
             reason: 'photo_analysis_complete',
+            profileCompletion: completion.overall,
+            initialRecommendations: true,
             recommendationCount: {
               morning: recommendations.routine?.morning?.length || 0,
               evening: recommendations.routine?.evening?.length || 0,
@@ -435,11 +566,20 @@ class BeautyProfileService {
         } catch (recError) {
           Logger.error('Auto recommendation generation failed after photo', { error: recError.message, userId });
         }
+      } else {
+        Logger.info('Photo analysis complete but not triggering recommendations', {
+          userId,
+          reason: shouldTrigger.reason,
+          profileCompletion: completion.overall,
+          hasMinimumData: this.hasMinimumProfileData(completion)
+        });
       }
 
       return {
         triggered: false,
-        reason: shouldTrigger.reason
+        reason: shouldTrigger.reason,
+        profileCompletion: completion.overall,
+        needsMoreProfileData: shouldTrigger.reason === 'insufficient_profile_data'
       };
 
     } catch (error) {

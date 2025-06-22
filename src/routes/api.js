@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const supabase = require('../config/database');
 
 // Controllers
 const searchController = require('../controllers/searchController');

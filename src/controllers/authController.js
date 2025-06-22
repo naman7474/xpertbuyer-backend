@@ -283,11 +283,7 @@ const getProfile = async (req, res) => {
       .from('users')
       .select(`
         *,
-        skin_profiles(*),
-        hair_profiles(*),
-        lifestyle_demographics(*),
-        health_medical_conditions(*),
-        makeup_preferences(*)
+        beauty_profiles(*)
       `)
       .eq('id', user.id)
       .single();

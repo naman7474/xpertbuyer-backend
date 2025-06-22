@@ -1,51 +1,45 @@
-const AIAnalysisCacheService = require('../services/aiAnalysisCacheService');
+const supabase = require('../config/database');
 const Logger = require('./logger');
 
 class CacheCleanupService {
   constructor() {
-    this.cacheService = new AIAnalysisCacheService();
+    this.cleanupInterval = 6 * 60 * 60 * 1000; // 6 hours
     this.isRunning = false;
   }
 
   /**
-   * Start periodic cache cleanup
+   * Start the cache cleanup service
    */
-  startPeriodicCleanup(intervalHours = 6) {
+  start() {
     if (this.isRunning) {
-      Logger.info('Cache cleanup service is already running');
+      Logger.warn('Cache cleanup service is already running');
       return;
     }
 
+    Logger.info('Starting cache cleanup service (every 6 hours)', {});
     this.isRunning = true;
-    const intervalMs = intervalHours * 60 * 60 * 1000; // Convert hours to milliseconds
 
-    Logger.info(`Starting cache cleanup service (every ${intervalHours} hours)`);
-    
     // Run initial cleanup
     this.performCleanup();
-    
+
     // Schedule periodic cleanup
-    this.cleanupInterval = setInterval(() => {
+    this.intervalId = setInterval(() => {
       this.performCleanup();
-    }, intervalMs);
+    }, this.cleanupInterval);
+
+    Logger.info('Cache cleanup service initialized', {});
   }
 
   /**
-   * Stop periodic cache cleanup
+   * Stop the cache cleanup service
    */
-  stopPeriodicCleanup() {
-    if (!this.isRunning) {
-      Logger.debug('Cache cleanup service is not running');
-      return;
+  stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
     }
-
     this.isRunning = false;
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-    
-    Logger.info('Cache cleanup service stopped');
+    Logger.info('Cache cleanup service stopped', {});
   }
 
   /**
@@ -53,27 +47,72 @@ class CacheCleanupService {
    */
   async performCleanup() {
     try {
-      Logger.debug('Starting cache cleanup...');
-      
-      // Get statistics before cleanup
-      const statsBefore = await this.cacheService.getCacheStats();
-      
-      // Cleanup expired entries
-      await this.cacheService.cleanupExpiredCache();
-      
-      // Get statistics after cleanup
-      const statsAfter = await this.cacheService.getCacheStats();
-      
-      const cleaned = statsBefore ? statsBefore.expired : 0;
-      Logger.info(`Cache cleanup completed. Removed ${cleaned} expired entries`);
-      
-      // Log current cache status in debug mode
-      if (statsAfter) {
-        Logger.debug(`Cache status: ${statsAfter.active} active, ${statsAfter.total} total entries`);
+      Logger.debug('Starting cache cleanup...', {});
+
+      // Get cache statistics first
+      const stats = await this.getCacheStats();
+      if (stats && stats.tableExists) {
+        // Clean up expired entries
+        const deletedCount = await this.cleanupExpiredEntries();
+        Logger.info(`Cache cleanup completed. Removed ${deletedCount} expired entries`, {});
+      } else {
+        Logger.debug('Cache table does not exist, skipping cleanup');
+        Logger.info('Cache cleanup completed. Removed 0 expired entries', {});
       }
-      
+
     } catch (error) {
       Logger.error('Cache cleanup error', { error: error.message });
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getCacheStats() {
+    try {
+      const { data, error } = await supabase
+        .from('ai_analysis_cache')
+        .select('expires_at');
+
+      if (error) {
+        if (error.message.includes('does not exist')) {
+          return { tableExists: false };
+        }
+        throw error;
+      }
+
+      const now = new Date();
+      const expiredCount = data.filter(item => new Date(item.expires_at) <= now).length;
+
+      return {
+        total: data.length,
+        expired: expiredCount,
+        tableExists: true
+      };
+    } catch (error) {
+      Logger.error('Cache stats error', { error: error.message });
+      return { tableExists: false };
+    }
+  }
+
+  /**
+   * Clean up expired cache entries
+   */
+  async cleanupExpiredEntries() {
+    try {
+      const { count, error } = await supabase
+        .from('ai_analysis_cache')
+        .delete()
+        .lt('expires_at', new Date().toISOString());
+
+      if (error) {
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      Logger.error('Cache cleanup error', { error: error.message });
+      return 0;
     }
   }
 
@@ -82,7 +121,7 @@ class CacheCleanupService {
    */
   async getCacheStatistics() {
     try {
-      const stats = await this.cacheService.getCacheStats();
+      const stats = await this.getCacheStats();
       
       if (!stats) {
         return { error: 'Unable to retrieve cache statistics' };
@@ -91,7 +130,6 @@ class CacheCleanupService {
       const report = {
         summary: {
           total: stats.total,
-          active: stats.active,
           expired: stats.expired,
           totalAccesses: stats.totalAccesses,
           cacheHitRate: stats.totalAccesses > 0 ? ((stats.totalAccesses - stats.total) / stats.totalAccesses * 100).toFixed(2) + '%' : '0%'
@@ -144,7 +182,7 @@ class CacheCleanupService {
    */
   async healthCheck() {
     try {
-      const stats = await this.cacheService.getCacheStats();
+      const stats = await this.getCacheStats();
       const isHealthy = stats !== null;
       
       return {
@@ -163,4 +201,4 @@ class CacheCleanupService {
   }
 }
 
-module.exports = CacheCleanupService; 
+module.exports = new CacheCleanupService(); 

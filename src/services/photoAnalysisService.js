@@ -59,9 +59,9 @@ class PhotoAnalysisService {
       // Process and optimize image
       const processedBuffer = await this.preprocessImage(photoBuffer);
 
-      // Upload to storage (Supabase Storage example)
+      // Upload to storage (using existing beauty-ai-photos bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('user-photos')
+        .from('beauty-ai-photos')
         .upload(fileName, processedBuffer, {
           contentType: 'image/jpeg',
           cacheControl: '3600',
@@ -74,7 +74,7 @@ class PhotoAnalysisService {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('user-photos')
+        .from('beauty-ai-photos')
         .getPublicUrl(fileName);
 
       // Create database record
@@ -385,19 +385,22 @@ Return the analysis in JSON format with the structure:
    */
   async saveSkinAnalysis(photoId, userId, analysis) {
     try {
+      // Ensure arrays are properly formatted
+      const insertData = {
+        photo_id: photoId,
+        user_id: userId,
+        skin_concerns: analysis.skin_concerns,
+        skin_attributes: analysis.skin_attributes,
+        overall_skin_score: analysis.overall_skin_score,
+        ai_observations: Array.isArray(analysis.ai_observations) ? analysis.ai_observations : [analysis.ai_observations].filter(Boolean),
+        improvement_areas: Array.isArray(analysis.improvement_areas) ? analysis.improvement_areas : [analysis.improvement_areas].filter(Boolean),
+        positive_attributes: Array.isArray(analysis.positive_attributes) ? analysis.positive_attributes : [analysis.positive_attributes].filter(Boolean),
+        confidence_score: 0.85
+      };
+
       const { data, error } = await supabase
         .from('photo_analyses')
-        .insert({
-          photo_id: photoId,
-          user_id: userId,
-          skin_concerns: analysis.skin_concerns,
-          skin_attributes: analysis.skin_attributes,
-          overall_skin_score: analysis.overall_skin_score,
-          ai_observations: analysis.ai_observations,
-          improvement_areas: analysis.improvement_areas,
-          positive_attributes: analysis.positive_attributes,
-          confidence_score: 0.85
-        })
+        .insert(insertData)
         .select()
         .single();
 

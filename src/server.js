@@ -117,8 +117,7 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Initialize cache cleanup service
-const cacheCleanupService = new CacheCleanupService();
+
 
 // Environment variable validation
 const validateEnvironment = () => {
@@ -170,7 +169,7 @@ const startServer = async () => {
       
       // Start cache cleanup service
       try {
-        cacheCleanupService.startPeriodicCleanup(6);
+        CacheCleanupService.start();
         Logger.info('Cache cleanup service initialized');
       } catch (error) {
         Logger.warn('Cache cleanup service failed to start', { error: error.message });
@@ -186,7 +185,7 @@ const startServer = async () => {
 const gracefulShutdown = (signal) => {
   Logger.info(`${signal} received, shutting down gracefully`);
   
-  cacheCleanupService.stopPeriodicCleanup();
+  CacheCleanupService.stop();
   
   // Give the server time to finish existing requests
   setTimeout(() => {

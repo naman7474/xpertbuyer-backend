@@ -93,6 +93,11 @@ class AIAnalysisCacheService {
         .single();
 
       if (error) {
+        // If table doesn't exist, return null gracefully
+        if (error.message.includes('does not exist')) {
+          Logger.debug('Cache table does not exist, skipping cache lookup');
+          return null;
+        }
         Logger.debug('Cache retrieval error', { error: error.message });
         return null;
       }
@@ -125,6 +130,11 @@ class AIAnalysisCacheService {
         });
 
       if (error) {
+        // If table doesn't exist, just log and continue without caching
+        if (error.message.includes('does not exist')) {
+          Logger.debug('Cache table does not exist, skipping cache save');
+          return;
+        }
         Logger.error('Cache save error', { error: error.message });
       } else {
         Logger.debug(`Cached ${analysisType} analysis for user ${userId}`);
@@ -221,6 +231,18 @@ class AIAnalysisCacheService {
         .select('analysis_type, expires_at, access_count');
 
       if (error) {
+        // If table doesn't exist, return empty stats
+        if (error.message.includes('does not exist')) {
+          Logger.debug('Cache table does not exist, returning empty stats');
+          return {
+            total: 0,
+            active: 0,
+            expired: 0,
+            totalAccesses: 0,
+            byType: {},
+            tableExists: false
+          };
+        }
         Logger.error('Cache stats error', { error: error.message });
         return null;
       }
@@ -231,7 +253,8 @@ class AIAnalysisCacheService {
         active: data.filter(item => new Date(item.expires_at) > now).length,
         expired: data.filter(item => new Date(item.expires_at) <= now).length,
         totalAccesses: data.reduce((sum, item) => sum + (item.access_count || 0), 0),
-        byType: {}
+        byType: {},
+        tableExists: true
       };
 
       // Group by analysis type

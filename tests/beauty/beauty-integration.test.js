@@ -79,10 +79,15 @@ describe('Beauty AI Platform Integration Tests', () => {
         },
         section: 'skin',
         onboardingStatus: {
-          triggered: false,
-          reason: 'profile_incomplete',
+          triggered: true,
+          reason: 'recommendations_regenerated',
           profileCompletion: 80,
-          missingFields: ['lifestyle.location']
+          sectionUpdated: 'skin',
+          recommendationCount: {
+            morning: 4,
+            evening: 5,
+            weekly: 2
+          }
         }
       });
 
@@ -99,6 +104,8 @@ describe('Beauty AI Platform Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+      expect(response.body.onboardingStatus.triggered).toBe(true);
+      expect(response.body.onboardingStatus.reason).toBe('recommendations_regenerated');
       expect(response.body.onboardingStatus.profileCompletion).toBe(80);
       expect(beautyProfileService.updateProfile).toHaveBeenCalledWith(testUserId, 'skin', {
         skin_type: 'combination',

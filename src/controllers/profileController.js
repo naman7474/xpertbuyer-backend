@@ -52,14 +52,23 @@ const uploadImageToSupabase = async (file, userId, type) => {
 const getSkinProfile = async (req, res) => {
   try {
     const { user } = req;
-
-    const { data: skinProfile, error } = await supabase
-      .from('skin_profiles')
-      .select('*')
+    
+    // Get skin profile data from beauty_profiles
+    const { data: profile, error } = await supabase
+      .from('beauty_profiles')
+      .select(`
+        skin_type,
+        skin_tone,
+        undertone,
+        primary_skin_concerns,
+        secondary_skin_concerns,
+        skin_sensitivity_level,
+        known_allergies
+      `)
       .eq('user_id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
       Logger.error('Skin profile fetch error', { error: error.message });
       return res.status(500).json({
         success: false,
@@ -67,9 +76,20 @@ const getSkinProfile = async (req, res) => {
       });
     }
 
+    // Map to expected format for backward compatibility
+    const skinProfile = profile ? {
+      skin_type: profile.skin_type,
+      skin_tone: profile.skin_tone,
+      undertone: profile.undertone,
+      primary_concerns: profile.primary_skin_concerns || [],
+      secondary_concerns: profile.secondary_skin_concerns || [],
+      sensitivity_level: profile.skin_sensitivity_level,
+      allergies: profile.known_allergies || []
+    } : null;
+
     res.status(200).json({
       success: true,
-      data: skinProfile || null
+      data: skinProfile
     });
 
   } catch (error) {
@@ -87,39 +107,30 @@ const updateSkinProfile = async (req, res) => {
     const { user } = req;
     const profileData = req.body;
 
-    // Check if profile exists
-    const { data: existingProfile } = await supabase
-      .from('skin_profiles')
-      .select('id')
-      .eq('user_id', user.id)
+    // Map incoming data to beauty_profiles schema
+    const beautyProfileData = {
+      skin_type: profileData.skin_type,
+      skin_tone: profileData.skin_tone,
+      undertone: profileData.undertone,
+      primary_skin_concerns: profileData.primary_concerns,
+      secondary_skin_concerns: profileData.secondary_concerns,
+      skin_sensitivity_level: profileData.sensitivity_level,
+      known_allergies: profileData.allergies,
+      updated_at: new Date().toISOString()
+    };
+
+    // Upsert into beauty_profiles
+    const { data: result, error } = await supabase
+      .from('beauty_profiles')
+      .upsert([{
+        ...beautyProfileData,
+        user_id: user.id
+      }], { onConflict: 'user_id' })
+      .select('*')
       .single();
 
-    let result;
-    if (existingProfile) {
-      // Update existing profile
-      result = await supabase
-        .from('skin_profiles')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('*')
-        .single();
-    } else {
-      // Create new profile
-      result = await supabase
-        .from('skin_profiles')
-        .insert([{
-          ...profileData,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-    }
-
-    if (result.error) {
-      Logger.error('Skin profile update error', { error: result.error.message });
+    if (error) {
+      Logger.error('Skin profile update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update skin profile'
@@ -136,7 +147,7 @@ const updateSkinProfile = async (req, res) => {
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'skin', 
-          result.data, 
+          result, 
           'skin_profile_update'
         );
       } catch (error) {
@@ -147,7 +158,7 @@ const updateSkinProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Skin profile updated successfully',
-      data: result.data
+      data: result
     });
 
   } catch (error) {
@@ -181,15 +192,15 @@ const uploadFacePhoto = async (req, res) => {
       });
     }
 
-    // Update skin profile with photo URL
+    // Update beauty profile with photo URL
     const { data: updatedProfile, error } = await supabase
-      .from('skin_profiles')
+      .from('beauty_profiles')
       .upsert([{
         user_id: user.id,
         face_photo_url: imageUrl,
         photo_analysis_consent: true,
         updated_at: new Date().toISOString()
-      }])
+      }], { onConflict: 'user_id' })
       .select('*')
       .single();
 
@@ -224,9 +235,16 @@ const getHairProfile = async (req, res) => {
   try {
     const { user } = req;
 
-    const { data: hairProfile, error } = await supabase
-      .from('hair_profiles')
-      .select('*')
+    const { data: profile, error } = await supabase
+      .from('beauty_profiles')
+      .select(`
+        hair_type,
+        hair_texture,
+        hair_porosity,
+        scalp_condition,
+        hair_concerns,
+        chemical_treatments
+      `)
       .eq('user_id', user.id)
       .single();
 
@@ -238,9 +256,19 @@ const getHairProfile = async (req, res) => {
       });
     }
 
+    // Map to expected format for backward compatibility
+    const hairProfile = profile ? {
+      hair_type: profile.hair_type,
+      hair_texture: profile.hair_texture,
+      hair_porosity: profile.hair_porosity,
+      scalp_condition: profile.scalp_condition,
+      primary_concerns: profile.hair_concerns || [],
+      chemical_treatments: profile.chemical_treatments || []
+    } : null;
+
     res.status(200).json({
       success: true,
-      data: hairProfile || null
+      data: hairProfile
     });
 
   } catch (error) {
@@ -257,36 +285,29 @@ const updateHairProfile = async (req, res) => {
     const { user } = req;
     const profileData = req.body;
 
-    const { data: existingProfile } = await supabase
-      .from('hair_profiles')
-      .select('id')
-      .eq('user_id', user.id)
+    // Map incoming data to beauty_profiles schema
+    const beautyProfileData = {
+      hair_type: profileData.hair_type,
+      hair_texture: profileData.hair_texture,
+      hair_porosity: profileData.hair_porosity,
+      scalp_condition: profileData.scalp_condition,
+      hair_concerns: profileData.primary_concerns,
+      chemical_treatments: profileData.chemical_treatments,
+      updated_at: new Date().toISOString()
+    };
+
+    // Upsert into beauty_profiles
+    const { data: result, error } = await supabase
+      .from('beauty_profiles')
+      .upsert([{
+        ...beautyProfileData,
+        user_id: user.id
+      }], { onConflict: 'user_id' })
+      .select('*')
       .single();
 
-    let result;
-    if (existingProfile) {
-      result = await supabase
-        .from('hair_profiles')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('*')
-        .single();
-    } else {
-      result = await supabase
-        .from('hair_profiles')
-        .insert([{
-          ...profileData,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-    }
-
-    if (result.error) {
-      Logger.error('Hair profile update error', { error: result.error.message });
+    if (error) {
+      Logger.error('Hair profile update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update hair profile'
@@ -302,7 +323,7 @@ const updateHairProfile = async (req, res) => {
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'hair', 
-          result.data, 
+          result, 
           'hair_profile_update'
         );
       } catch (error) {
@@ -313,7 +334,7 @@ const updateHairProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Hair profile updated successfully',
-      data: result.data
+      data: result
     });
 
   } catch (error) {
@@ -330,9 +351,19 @@ const getLifestyleDemographics = async (req, res) => {
   try {
     const { user } = req;
 
-    const { data: lifestyleData, error } = await supabase
-      .from('lifestyle_demographics')
-      .select('*')
+    const { data: profile, error } = await supabase
+      .from('beauty_profiles')
+      .select(`
+        location_city,
+        location_country,
+        climate_type,
+        pollution_level,
+        sun_exposure_daily,
+        sleep_hours_avg,
+        stress_level,
+        exercise_frequency,
+        water_intake_daily
+      `)
       .eq('user_id', user.id)
       .single();
 
@@ -344,9 +375,22 @@ const getLifestyleDemographics = async (req, res) => {
       });
     }
 
+    // Map to expected format for backward compatibility
+    const lifestyleData = profile ? {
+      location_city: profile.location_city,
+      location_country: profile.location_country,
+      climate_type: profile.climate_type,
+      pollution_level: profile.pollution_level,
+      sun_exposure_daily: profile.sun_exposure_daily,
+      sleep_hours_avg: profile.sleep_hours_avg,
+      stress_level: profile.stress_level,
+      exercise_frequency: profile.exercise_frequency,
+      water_intake_daily: profile.water_intake_daily
+    } : null;
+
     res.status(200).json({
       success: true,
-      data: lifestyleData || null
+      data: lifestyleData
     });
 
   } catch (error) {
@@ -363,36 +407,32 @@ const updateLifestyleDemographics = async (req, res) => {
     const { user } = req;
     const profileData = req.body;
 
-    const { data: existingProfile } = await supabase
-      .from('lifestyle_demographics')
-      .select('id')
-      .eq('user_id', user.id)
+    // Map incoming data to beauty_profiles schema
+    const beautyProfileData = {
+      location_city: profileData.location_city,
+      location_country: profileData.location_country,
+      climate_type: profileData.climate_type,
+      pollution_level: profileData.pollution_level,
+      sun_exposure_daily: profileData.sun_exposure_daily,
+      sleep_hours_avg: profileData.sleep_hours_avg,
+      stress_level: profileData.stress_level,
+      exercise_frequency: profileData.exercise_frequency,
+      water_intake_daily: profileData.water_intake_daily,
+      updated_at: new Date().toISOString()
+    };
+
+    // Upsert into beauty_profiles
+    const { data: result, error } = await supabase
+      .from('beauty_profiles')
+      .upsert([{
+        ...beautyProfileData,
+        user_id: user.id
+      }], { onConflict: 'user_id' })
+      .select('*')
       .single();
 
-    let result;
-    if (existingProfile) {
-      result = await supabase
-        .from('lifestyle_demographics')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('*')
-        .single();
-    } else {
-      result = await supabase
-        .from('lifestyle_demographics')
-        .insert([{
-          ...profileData,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-    }
-
-    if (result.error) {
-      Logger.error('Lifestyle demographics update error', { error: result.error.message });
+    if (error) {
+      Logger.error('Lifestyle demographics update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update lifestyle demographics'
@@ -408,7 +448,7 @@ const updateLifestyleDemographics = async (req, res) => {
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'lifestyle', 
-          result.data, 
+          result, 
           'lifestyle_profile_update'
         );
       } catch (error) {
@@ -419,7 +459,7 @@ const updateLifestyleDemographics = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Lifestyle demographics updated successfully',
-      data: result.data
+      data: result
     });
 
   } catch (error) {
@@ -436,9 +476,16 @@ const getHealthMedicalConditions = async (req, res) => {
   try {
     const { user } = req;
 
-    const { data: healthData, error } = await supabase
-      .from('health_medical_conditions')
-      .select('*')
+    const { data: profile, error } = await supabase
+      .from('beauty_profiles')
+      .select(`
+        age,
+        hormonal_status,
+        medications,
+        skin_medical_conditions,
+        dietary_type,
+        supplements
+      `)
       .eq('user_id', user.id)
       .single();
 
@@ -450,9 +497,19 @@ const getHealthMedicalConditions = async (req, res) => {
       });
     }
 
+    // Map to expected format for backward compatibility
+    const healthData = profile ? {
+      age: profile.age,
+      hormonal_status: profile.hormonal_status,
+      medications: profile.medications || [],
+      skin_medical_conditions: profile.skin_medical_conditions || [],
+      dietary_type: profile.dietary_type,
+      supplements: profile.supplements || []
+    } : null;
+
     res.status(200).json({
       success: true,
-      data: healthData || null
+      data: healthData
     });
 
   } catch (error) {
@@ -469,36 +526,29 @@ const updateHealthMedicalConditions = async (req, res) => {
     const { user } = req;
     const profileData = req.body;
 
-    const { data: existingProfile } = await supabase
-      .from('health_medical_conditions')
-      .select('id')
-      .eq('user_id', user.id)
+    // Map incoming data to beauty_profiles schema
+    const beautyProfileData = {
+      age: profileData.age,
+      hormonal_status: profileData.hormonal_status,
+      medications: profileData.medications,
+      skin_medical_conditions: profileData.skin_medical_conditions,
+      dietary_type: profileData.dietary_type,
+      supplements: profileData.supplements,
+      updated_at: new Date().toISOString()
+    };
+
+    // Upsert into beauty_profiles
+    const { data: result, error } = await supabase
+      .from('beauty_profiles')
+      .upsert([{
+        ...beautyProfileData,
+        user_id: user.id
+      }], { onConflict: 'user_id' })
+      .select('*')
       .single();
 
-    let result;
-    if (existingProfile) {
-      result = await supabase
-        .from('health_medical_conditions')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('*')
-        .single();
-    } else {
-      result = await supabase
-        .from('health_medical_conditions')
-        .insert([{
-          ...profileData,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-    }
-
-    if (result.error) {
-      Logger.error('Health medical conditions update error', { error: result.error.message });
+    if (error) {
+      Logger.error('Health medical conditions update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update health medical conditions'
@@ -514,7 +564,7 @@ const updateHealthMedicalConditions = async (req, res) => {
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'health', 
-          result.data, 
+          result, 
           'health_profile_update'
         );
       } catch (error) {
@@ -525,7 +575,7 @@ const updateHealthMedicalConditions = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Health medical conditions updated successfully',
-      data: result.data
+      data: result
     });
 
   } catch (error) {
@@ -542,9 +592,15 @@ const getMakeupPreferences = async (req, res) => {
   try {
     const { user } = req;
 
-    const { data: makeupData, error } = await supabase
-      .from('makeup_preferences')
-      .select('*')
+    const { data: profile, error } = await supabase
+      .from('beauty_profiles')
+      .select(`
+        makeup_frequency,
+        preferred_look,
+        coverage_preference,
+        budget_range,
+        favorite_brands
+      `)
       .eq('user_id', user.id)
       .single();
 
@@ -556,9 +612,18 @@ const getMakeupPreferences = async (req, res) => {
       });
     }
 
+    // Map to expected format for backward compatibility
+    const makeupData = profile ? {
+      makeup_frequency: profile.makeup_frequency,
+      preferred_look: profile.preferred_look,
+      coverage_preference: profile.coverage_preference,
+      budget_range: profile.budget_range,
+      favorite_brands: profile.favorite_brands || []
+    } : null;
+
     res.status(200).json({
       success: true,
-      data: makeupData || null
+      data: makeupData
     });
 
   } catch (error) {
@@ -575,36 +640,28 @@ const updateMakeupPreferences = async (req, res) => {
     const { user } = req;
     const profileData = req.body;
 
-    const { data: existingProfile } = await supabase
-      .from('makeup_preferences')
-      .select('id')
-      .eq('user_id', user.id)
+    // Map incoming data to beauty_profiles schema
+    const beautyProfileData = {
+      makeup_frequency: profileData.makeup_frequency,
+      preferred_look: profileData.preferred_look,
+      coverage_preference: profileData.coverage_preference,
+      budget_range: profileData.budget_range,
+      favorite_brands: profileData.favorite_brands,
+      updated_at: new Date().toISOString()
+    };
+
+    // Upsert into beauty_profiles
+    const { data: result, error } = await supabase
+      .from('beauty_profiles')
+      .upsert([{
+        ...beautyProfileData,
+        user_id: user.id
+      }], { onConflict: 'user_id' })
+      .select('*')
       .single();
 
-    let result;
-    if (existingProfile) {
-      result = await supabase
-        .from('makeup_preferences')
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('*')
-        .single();
-    } else {
-      result = await supabase
-        .from('makeup_preferences')
-        .insert([{
-          ...profileData,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-    }
-
-    if (result.error) {
-      Logger.error('Makeup preferences update error', { error: result.error.message });
+    if (error) {
+      Logger.error('Makeup preferences update error', { error: error.message });
       return res.status(500).json({
         success: false,
         message: 'Failed to update makeup preferences'
@@ -620,7 +677,7 @@ const updateMakeupPreferences = async (req, res) => {
         await aiAnalysisService.analyzeProfileData(
           user.id, 
           'makeup', 
-          result.data, 
+          result, 
           'makeup_profile_update'
         );
       } catch (error) {
@@ -631,7 +688,7 @@ const updateMakeupPreferences = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Makeup preferences updated successfully',
-      data: result.data
+      data: result
     });
 
   } catch (error) {
@@ -646,16 +703,24 @@ const updateMakeupPreferences = async (req, res) => {
 // Helper function to update profile completion status
 const updateProfileCompletionStatus = async (userId) => {
   try {
-    // Check if all essential profile sections are completed
-    const [skinProfile, hairProfile, lifestyleData, healthData] = await Promise.all([
-      supabase.from('skin_profiles').select('id').eq('user_id', userId).single(),
-      supabase.from('hair_profiles').select('id').eq('user_id', userId).single(),
-      supabase.from('lifestyle_demographics').select('id').eq('user_id', userId).single(),
-      supabase.from('health_medical_conditions').select('id').eq('user_id', userId).single()
-    ]);
+    // Get beauty profile
+    const { data: profile } = await supabase
+      .from('beauty_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-    const isCompleted = !skinProfile.error && !hairProfile.error && 
-                      !lifestyleData.error && !healthData.error;
+    if (!profile) {
+      return;
+    }
+
+    // Check if essential sections are completed
+    const skinCompleted = profile.skin_type && profile.skin_tone && profile.primary_skin_concerns;
+    const hairCompleted = profile.hair_type && profile.hair_texture && profile.hair_concerns;
+    const lifestyleCompleted = profile.location_city && profile.climate_type;
+    const healthCompleted = profile.age && profile.hormonal_status;
+
+    const isCompleted = skinCompleted && hairCompleted && lifestyleCompleted && healthCompleted;
 
     await supabase
       .from('users')
@@ -676,12 +741,7 @@ const getCompleteProfile = async (req, res) => {
       .from('users')
       .select(`
         id, email, first_name, last_name, phone, date_of_birth, gender, 
-        profile_completed, created_at, updated_at,
-        skin_profiles(*),
-        hair_profiles(*),
-        lifestyle_demographics(*),
-        health_medical_conditions(*),
-        makeup_preferences(*)
+        profile_completed, created_at, updated_at
       `)
       .eq('id', user.id)
       .single();
@@ -694,9 +754,22 @@ const getCompleteProfile = async (req, res) => {
       });
     }
 
+    // Get beauty profile
+    const { data: beautyProfile } = await supabase
+      .from('beauty_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    // Structure response to match old format for backward compatibility
+    const completeProfile = {
+      ...userProfile,
+      beauty_profile: beautyProfile
+    };
+
     res.status(200).json({
       success: true,
-      data: userProfile
+      data: completeProfile
     });
 
   } catch (error) {

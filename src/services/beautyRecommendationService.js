@@ -81,9 +81,19 @@ class BeautyRecommendationService {
    */
   async getUserCompleteProfile(userId) {
     try {
-      // Use the unified profile service
-      const beautyProfileService = require('./beautyProfileService');
-      return await beautyProfileService.getProfileForRecommendations(userId);
+      // Get profile data directly from database to avoid circular dependency
+      const { data: profile, error } = await supabase
+        .from('beauty_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        Logger.error('Get user profile error', { error: error.message });
+        return null;
+      }
+
+      return profile;
     } catch (error) {
       Logger.error('Get user profile error', { error: error.message });
       return null;

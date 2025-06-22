@@ -1554,11 +1554,7 @@ Provide holistic beauty and wellness analysis across all aspects:
       .from('users')
       .select(`
         *,
-        skin_profiles(*),
-        hair_profiles(*),
-        lifestyle_demographics(*),
-        health_medical_conditions(*),
-        makeup_preferences(*)
+        beauty_profiles(*)
       `)
       .eq('id', userId)
       .single();
@@ -1566,10 +1562,10 @@ Provide holistic beauty and wellness analysis across all aspects:
     return {
       ...user,
       age: user.date_of_birth ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear() : null,
-      skin_tone: user.skin_profiles?.[0]?.skin_tone,
-      undertone: user.skin_profiles?.[0]?.undertone,
-      location: user.lifestyle_demographics?.[0]?.location,
-      climate: user.lifestyle_demographics?.[0]?.climate
+      skin_tone: user.beauty_profiles?.[0]?.skin_tone,
+      undertone: user.beauty_profiles?.[0]?.undertone,
+      location: `${user.beauty_profiles?.[0]?.location_city || ''}, ${user.beauty_profiles?.[0]?.location_country || ''}`.trim(),
+      climate: user.beauty_profiles?.[0]?.climate_type
     };
   }
 

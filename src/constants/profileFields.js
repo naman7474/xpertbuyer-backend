@@ -108,7 +108,7 @@ const PROFILE_FIELDS = {
       label: 'Scalp Condition',
       type: 'select',
       required: false,
-      options: ['dry', 'oily', 'normal', 'flaky', 'sensitive'],
+      options: ['dry', 'oily', 'normal', 'sensitive'],
       description: 'Your scalp condition'
     },
     primary_concerns: {
@@ -161,21 +161,21 @@ const PROFILE_FIELDS = {
       label: 'Climate Type',
       type: 'select',
       required: true,
-      options: ['humid', 'dry', 'tropical', 'temperate', 'cold', 'variable'],
+      options: ['tropical', 'dry', 'temperate', 'continental', 'polar'],
       description: 'Your local climate'
     },
     pollution_level: {
       label: 'Pollution Level',
       type: 'select',
       required: true,
-      options: ['low', 'moderate', 'high', 'very_high'],
+      options: ['low', 'moderate', 'high', 'severe'],
       description: 'Air pollution level in your area'
     },
     sun_exposure: {
       label: 'Daily Sun Exposure',
       type: 'select',
       required: true,
-      options: ['minimal', 'low', 'moderate', 'high', 'very_high'],
+      options: ['minimal', 'low', 'moderate', 'high'],
       description: 'Average daily sun exposure'
     },
     sleep_hours: {
@@ -190,7 +190,7 @@ const PROFILE_FIELDS = {
       label: 'Stress Level',
       type: 'select',
       required: true,
-      options: ['low', 'moderate', 'high', 'very_high'],
+      options: ['low', 'moderate', 'high', 'severe'],
       description: 'Your general stress level'
     },
     exercise_frequency: {
@@ -226,11 +226,10 @@ const PROFILE_FIELDS = {
       options: [
         'normal',
         'pregnancy',
-        'postpartum',
+        'breastfeeding',
         'menopause',
         'pcos',
-        'thyroid_issues',
-        'hormonal_acne'
+        'thyroid'
       ],
       description: 'Any hormonal conditions'
     },
@@ -260,12 +259,10 @@ const PROFILE_FIELDS = {
       type: 'multiselect',
       required: false,
       options: [
+        'omnivore',
         'vegetarian',
         'vegan',
-        'gluten_free',
-        'dairy_free',
-        'keto',
-        'omnivore'
+        'pescatarian'
       ],
       description: 'Your dietary preferences/restrictions'
     }
@@ -277,21 +274,21 @@ const PROFILE_FIELDS = {
       label: 'Makeup Usage Frequency',
       type: 'select',
       required: false,
-      options: ['daily', 'often', 'occasionally', 'rarely', 'never'],
+      options: ['never', 'special_occasions', 'weekly', 'daily', 'multiple_daily'],
       description: 'How often do you wear makeup?'
     },
     preferred_look: {
       label: 'Preferred Makeup Look',
       type: 'select',
       required: false,
-      options: ['natural', 'minimal', 'glam', 'bold', 'professional'],
+      options: ['natural', 'professional', 'glam', 'dramatic', 'artistic'],
       description: 'Your go-to makeup style'
     },
     coverage_preference: {
       label: 'Coverage Preference',
       type: 'select',
       required: false,
-      options: ['sheer', 'light', 'medium', 'full'],
+      options: ['none', 'light', 'medium', 'full'],
       description: 'Preferred foundation coverage'
     }
   },
@@ -303,11 +300,10 @@ const PROFILE_FIELDS = {
       type: 'select',
       required: true,
       options: [
-        'under_1000',
-        '1000_3000',
-        '3000_5000',
-        '5000_10000',
-        'above_10000'
+        'budget',
+        'mid_range',
+        'luxury',
+        'mixed'
       ],
       currency: 'INR',
       description: 'Monthly budget for beauty products'
