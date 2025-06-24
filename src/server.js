@@ -4,15 +4,18 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 const apiRoutes = require('./routes/api');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
-const CacheCleanupService = require('./utils/cacheCleanupService');
+const cacheCleanupService = require('./utils/cacheCleanupService');
 const { refreshDatabase } = require('./utils/refreshDatabase');
 const Logger = require('./utils/logger');
+const queueService = require('./services/queueService');
+const photoAnalysisService = require('./services/photoAnalysisService');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Enhanced security middleware
 app.use(helmet({
@@ -42,22 +45,15 @@ const getAllowedOrigins = () => {
 };
 
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = getAllowedOrigins();
-    console.log('CORS check - origin:', origin, 'allowed:', allowedOrigins);
-    
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:5173',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Enhanced rate limiting
@@ -80,14 +76,34 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Body parsing middleware with size limits
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Request logging middleware
-app.use(Logger.request);
+app.use((req, res, next) => {
+  if (req.path !== '/health' && req.path !== '/api/health') {
+    const origin = req.headers.origin || req.headers.referer || 'no-origin';
+    if (origin === 'no-origin' || origin === 'undefined') {
+      console.log('CORS check - origin:', origin, 'allowed:', [
+        'http://localhost:3000',
+        'http://localhost:3001', 
+        'http://localhost:5173'
+      ]);
+    }
+  }
+  next();
+});
 
 // API routes
 app.use('/api', apiRoutes);
+
+// Serve static files for photo uploads (if needed)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Root endpoint - minimal in production
 app.get('/', (req, res) => {
@@ -113,110 +129,87 @@ app.get('/', (req, res) => {
   res.json(response);
 });
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+// Initialize queue worker
+let photoWorker = null;
 
-
-
-// Environment variable validation
-const validateEnvironment = () => {
-  const requiredEnvVars = ['GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
-  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-  
-  if (missingVars.length > 0) {
-    Logger.error('Missing required environment variables', { missingVars });
-    // Only exit in non-Vercel environments to prevent serverless function crashes
-    if (process.env.VERCEL !== '1') {
-      process.exit(1);
-    } else {
-      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
-    }
-  }
-  
-  // Validate JWT secret strength in production
-  if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-    Logger.error('JWT_SECRET must be at least 32 characters in production');
-    // Only exit in non-Vercel environments
-    if (process.env.VERCEL !== '1') {
-      process.exit(1);
-    } else {
-      throw new Error('JWT_SECRET must be at least 32 characters in production');
-    }
-  }
-  
-  Logger.info('Environment validation passed');
-};
-
-// Start server (only when not in Vercel serverless environment)
-const startServer = async () => {
+async function initializeWorkers() {
   try {
-    validateEnvironment();
+    // Initialize photo processing worker
+    photoWorker = queueService.initializePhotoWorker(
+      photoAnalysisService.processPhotoFromQueue
+    );
     
-    // Refresh database connection and schema cache on startup
-    try {
-      await refreshDatabase();
-      Logger.info('Database schema refreshed successfully');
-    } catch (error) {
-      Logger.warn('Database refresh failed, but continuing startup', { error: error.message });
-    }
-    
-    app.listen(PORT, () => {
-      Logger.info(`XpertBuyer API server running on port ${PORT}`, {
-        environment: process.env.NODE_ENV || 'development',
-        port: PORT
-      });
-      
-      // Start cache cleanup service
-      try {
-        CacheCleanupService.start();
-        Logger.info('Cache cleanup service initialized');
-      } catch (error) {
-        Logger.warn('Cache cleanup service failed to start', { error: error.message });
-      }
+    Logger.info('Queue workers initialized successfully');
+  } catch (error) {
+    Logger.error('Failed to initialize queue workers', { error: error.message });
+  }
+}
+
+// Graceful shutdown handler
+async function gracefulShutdown(signal) {
+  Logger.info(`${signal} received, shutting down gracefully`);
+  
+  try {
+    // Stop accepting new connections
+    server.close(() => {
+      Logger.info('HTTP server closed');
     });
+
+    // Stop cache cleanup service
+    await cacheCleanupService.stop();
+    
+    // Shutdown queue service
+    await queueService.shutdown();
+    
+    // Give some time for cleanup
+    setTimeout(() => {
+      process.exit(0);
+    }, 5000);
+    
+  } catch (error) {
+    Logger.error('Error during graceful shutdown', { error: error.message });
+    process.exit(1);
+  }
+}
+
+// Start server
+async function startServer() {
+  try {
+    // Refresh database connection first
+    Logger.info('Refreshing database connection and schema cache...');
+    await refreshDatabase();
+    Logger.info('Database schema refreshed successfully');
+
+    // Initialize workers
+    await initializeWorkers();
+
+    // Start server
+    const server = app.listen(PORT, () => {
+      Logger.info('XpertBuyer API server running on port ' + PORT, {
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT.toString()
+      });
+
+      // Start cache cleanup service
+      cacheCleanupService.start();
+      Logger.info('Cache cleanup service initialized');
+    });
+
+    // Handle shutdown signals
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+    // Store server reference for graceful shutdown
+    global.server = server;
+
   } catch (error) {
     Logger.error('Failed to start server', { error: error.message });
     process.exit(1);
   }
-};
-
-// Graceful shutdown
-const gracefulShutdown = (signal) => {
-  Logger.info(`${signal} received, shutting down gracefully`);
-  
-  CacheCleanupService.stop();
-  
-  // Give the server time to finish existing requests
-  setTimeout(() => {
-    process.exit(0);
-  }, 10000);
-};
-
-// Only set up server and process handlers when not in Vercel serverless environment
-if (process.env.VERCEL !== '1') {
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-  // Handle uncaught exceptions
-  process.on('uncaughtException', (error) => {
-    Logger.error('Uncaught exception', { error: error.message, stack: error.stack });
-    process.exit(1);
-  });
-
-  process.on('unhandledRejection', (reason, promise) => {
-    Logger.error('Unhandled promise rejection', { reason, promise });
-  });
-
-  startServer();
-} else {
-  // Vercel serverless - just validate environment
-  try {
-    validateEnvironment();
-  } catch (error) {
-    Logger.error('Environment validation failed in serverless', { error: error.message });
-  }
 }
+
+// Start the server
+startServer();
 
 // Export app for testing
 module.exports = app; 

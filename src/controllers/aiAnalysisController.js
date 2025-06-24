@@ -1,7 +1,7 @@
 const aiAnalysisService = require('../services/aiAnalysisService');
 const supabase = require('../config/database');
-const CacheCleanupService = require('../utils/cacheCleanupService');
 const Logger = require('../utils/logger');
+const cacheCleanupService = require('../utils/cacheCleanupService');
 
 const aiAnalysisController = {
   /**
@@ -350,7 +350,6 @@ const aiAnalysisController = {
   async getCacheStatistics(req, res) {
     try {
       const userId = req.user.id;
-      const cacheCleanupService = new CacheCleanupService();
       
       // Get user-specific cache stats
       const userStats = await aiAnalysisService.getCacheStatistics(userId);

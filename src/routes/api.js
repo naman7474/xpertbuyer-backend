@@ -6,7 +6,6 @@ const supabase = require('../config/database');
 
 // Controllers
 const searchController = require('../controllers/searchController');
-const videoController = require('../controllers/videoController');
 const { 
   PhotoController, 
   BeautyProfileController, 
@@ -17,16 +16,13 @@ const {
 const { 
   validateSearch, 
   validateProductDetails, 
-  validateCompareProducts, 
-  validateProductVideos, 
-  validateVideosSummary 
+  validateCompareProducts 
 } = require('../middleware/validation');
 const { optionalAuth, authenticateToken } = require('../middleware/auth');
 
 // Import route modules
 const authRoutes = require('./authRoutes');
 const profileRoutes = require('./profileRoutes');
-const activityRoutes = require('./activityRoutes');
 const aiAnalysisRoutes = require('./aiAnalysisRoutes');
 
 // Configure multer for photo uploads
@@ -58,9 +54,6 @@ router.use('/auth', authRoutes);
 // Profile management routes (original)
 router.use('/profile', profileRoutes);
 
-// Activity tracking routes
-router.use('/activity', activityRoutes);
-
 // AI analysis routes (original)
 router.use('/ai', aiAnalysisRoutes);
 
@@ -72,10 +65,6 @@ router.get('/products/:productId', validateProductDetails, searchController.getP
 
 // Compare products
 router.post('/compare', validateCompareProducts, searchController.compareProducts);
-
-// Video content endpoints
-router.get('/products/:productId/videos', validateProductVideos, videoController.getProductVideos);
-router.get('/videos/products-summary', validateVideosSummary, videoController.getVideosSummary);
 
 // ==========================================
 // NEW BEAUTY AI ROUTES

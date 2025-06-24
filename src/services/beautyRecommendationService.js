@@ -1,5 +1,5 @@
 // src/services/beautyRecommendationService.js
-const { models } = require('../config/gemini');
+const geminiWrapper = require('./geminiWrapper');
 const supabase = require('../config/database');
 const Logger = require('../utils/logger');
 const productService = require('./productService');
@@ -189,16 +189,26 @@ Return as JSON with structure:
   }
 }`;
 
-      const result = await models.flash.generateContent(prompt);
-      const response = result.response.text();
-      
-      // Parse JSON from response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('Invalid response format from Gemini');
-      }
+      const result = await geminiWrapper.generateJSON('flash', prompt, {
+        useCache: true,
+        cacheKey: `recommendations-${userProfile.user_id}-${skinAnalysis.id}`,
+        fallbackJSON: {
+          routine: {
+            morning: [],
+            evening: [],
+            weekly: []
+          },
+          targeted_treatments: [],
+          ai_insights: {
+            primary_focus: userProfile.primary_skin_concerns?.[0] || 'overall skin health',
+            routine_philosophy: 'Simple and effective routine',
+            expected_timeline: '4-6 weeks for visible results',
+            lifestyle_tips: ['Stay hydrated', 'Get enough sleep', 'Use sunscreen daily']
+          }
+        }
+      });
 
-      return JSON.parse(jsonMatch[0]);
+      return result.json;
 
     } catch (error) {
       Logger.error('AI recommendation generation error', { error: error.message });
@@ -435,6 +445,7 @@ Return as JSON with structure:
           product_name: item.product_name,
           brand_name: item.brand,
           price_mrp: item.price,
+          category: this.mapProductTypeToCategory(item.product_type),
           recommendation_type: 'routine',
           routine_step: item.step,
           routine_time: 'morning',
@@ -462,6 +473,7 @@ Return as JSON with structure:
           product_name: item.product_name,
           brand_name: item.brand,
           price_mrp: item.price,
+          category: this.mapProductTypeToCategory(item.product_type),
           recommendation_type: 'routine',
           routine_step: item.step,
           routine_time: 'evening',
@@ -489,6 +501,7 @@ Return as JSON with structure:
           product_name: item.product_name,
           brand_name: item.brand,
           price_mrp: item.price,
+          category: this.mapProductTypeToCategory(item.product_type),
           recommendation_type: 'routine',
           routine_step: item.step,
           routine_time: 'weekly',
@@ -581,6 +594,42 @@ Return as JSON with structure:
       Logger.error('Get user recommendations error', { error: error.message });
       throw error;
     }
+  }
+
+  /**
+   * Map product type to category for database
+   */
+  mapProductTypeToCategory(productType) {
+    // Map product types to standard categories
+    const categoryMap = {
+      'cleanser': 'skincare',
+      'toner': 'skincare',
+      'serum': 'skincare',
+      'moisturizer': 'skincare',
+      'sunscreen': 'skincare',
+      'eye_cream': 'skincare',
+      'spot_treatment': 'skincare',
+      'face_mask': 'skincare',
+      'exfoliant': 'skincare',
+      'treatment': 'skincare',
+      'lip_care': 'skincare',
+      'shampoo': 'haircare',
+      'conditioner': 'haircare',
+      'hair_mask': 'haircare',
+      'hair_oil': 'haircare',
+      'hair_serum': 'haircare',
+      'foundation': 'makeup',
+      'concealer': 'makeup',
+      'powder': 'makeup',
+      'blush': 'makeup',
+      'lipstick': 'makeup',
+      'mascara': 'makeup',
+      'eyeliner': 'makeup'
+    };
+
+    // Return the mapped category or default to 'skincare'
+    const lowerType = productType.toLowerCase().replace(/\s+/g, '_');
+    return categoryMap[lowerType] || 'skincare';
   }
 }
 

@@ -1,4 +1,4 @@
-const { models } = require('../config/gemini');
+const geminiWrapper = require('./geminiWrapper');
 const { USER_SEGMENTS, INTENT_TYPES } = require('../constants/userSegments');
 const Logger = require('../utils/logger');
 
@@ -37,8 +37,8 @@ Guidelines:
 `;
 
     try {
-      const result = await models.flash.generateContent(prompt);
-      const response = result.response.text();
+      const result = await geminiWrapper.generateContent('flash', prompt);
+      const response = result.text;
       
       // Clean the response to extract JSON
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -240,8 +240,8 @@ Example general reasons:
 `;
 
     try {
-      const result = await models.flash.generateContent(prompt);
-      const response = result.response.text();
+      const result = await geminiWrapper.generateContent('flash', prompt);
+      const response = result.text;
       
       // Extract JSON array from response
       const jsonMatch = response.match(/\[[\s\S]*?\]/);
@@ -315,8 +315,8 @@ Return as JSON array:
 `;
 
     try {
-      const result = await models.flash.generateContent(prompt);
-      const response = result.response.text();
+      const result = await geminiWrapper.generateContent('flash', prompt);
+      const response = result.text;
       const jsonMatch = response.match(/\[[\s\S]*?\]/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch (error) {

@@ -1,33 +1,15 @@
 // src/services/photoAnalysisService.js
-const { models } = require('../config/gemini');
 const supabase = require('../config/database');
 const Logger = require('../utils/logger');
 const sharp = require('sharp');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const beautyProfileService = require('./beautyProfileService');
-
-// Conditionally import Google Cloud Storage
-let Storage;
-try {
-  Storage = require('@google-cloud/storage').Storage;
-} catch (error) {
-  Logger.warn('Google Cloud Storage not available, using local storage fallback');
-  Storage = null;
-}
+const queueService = require('./queueService');
 
 class PhotoAnalysisService {
   constructor() {
-    // Initialize storage (you can use Supabase Storage or Google Cloud Storage)
-    if (Storage && process.env.GOOGLE_CLOUD_PROJECT_ID) {
-      this.storage = new Storage();
-      this.bucketName = process.env.PHOTO_BUCKET_NAME || 'beauty-ai-photos';
-      this.useCloudStorage = true;
-    } else {
-      Logger.info('Using Supabase Storage for photo uploads');
-      this.useCloudStorage = false;
-    }
-    
+    Logger.info('Using Supabase Storage for photo uploads');
     // Face mesh service will be initialized separately
     this.faceMeshService = null;
   }
@@ -93,13 +75,25 @@ class PhotoAnalysisService {
         throw new Error(`Database insert failed: ${dbError.message}`);
       }
 
-      // Start async processing
-      this.processPhotoAsync(photoRecord.id, userId, processedBuffer);
+      // Add job to queue instead of direct processing
+      const job = await queueService.addPhotoProcessingJob({
+        photoId: photoRecord.id,
+        userId: userId,
+        imageBuffer: processedBuffer.toString('base64'), // Convert to base64 for queue storage
+        photoType: photoType
+      });
+
+      Logger.info('Photo processing job queued', {
+        jobId: job.id,
+        photoId: photoRecord.id,
+        userId
+      });
 
       return {
         photo_id: photoRecord.id,
         photo_url: publicUrl,
-        processing_status: 'started'
+        processing_status: 'queued',
+        job_id: job.id
       };
 
     } catch (error) {
@@ -133,19 +127,27 @@ class PhotoAnalysisService {
   }
 
   /**
-   * Process photo asynchronously
+   * Process photo from queue job
+   * Static method to be used by queue worker
    */
-  async processPhotoAsync(photoId, userId, imageBuffer) {
+  static async processPhotoFromQueue(jobData) {
+    const { photoId, userId, imageBuffer, photoType } = jobData;
     const startTime = Date.now();
     
     try {
+      // Convert base64 back to buffer
+      const photoBuffer = Buffer.from(imageBuffer, 'base64');
+      
+      // Create instance for processing
+      const service = new PhotoAnalysisService();
+      
       // Update status to processing
-      await this.updatePhotoStatus(photoId, 'processing');
+      await service.updatePhotoStatus(photoId, 'processing');
 
       // Run parallel processing
       const [faceMeshResult, skinAnalysis] = await Promise.all([
-        this.generateFaceMesh(imageBuffer),
-        this.analyzeSkinWithGemini(imageBuffer)
+        service.generateFaceMesh(photoBuffer),
+        service.analyzeSkinWithGemini(photoBuffer)
       ]);
 
       // Update photo record with results
@@ -163,7 +165,7 @@ class PhotoAnalysisService {
         .eq('id', photoId);
 
       // Save skin analysis
-      const analysisRecord = await this.saveSkinAnalysis(photoId, userId, skinAnalysis);
+      const analysisRecord = await service.saveSkinAnalysis(photoId, userId, skinAnalysis);
 
       Logger.info('Photo processing completed', { 
         photoId, 
@@ -178,15 +180,54 @@ class PhotoAnalysisService {
         analysisRecord.id
       );
 
+      return {
+        success: true,
+        photoId,
+        analysisId: analysisRecord.id,
+        processingTime
+      };
+
     } catch (error) {
       Logger.error('Photo processing error', { 
         error: error.message, 
         photoId 
       });
       
-      await this.updatePhotoStatus(photoId, 'failed');
+      // Update status to failed
+      await PhotoAnalysisService.updatePhotoStatusStatic(photoId, 'failed');
       throw error;
     }
+  }
+
+  /**
+   * Static method to update photo status
+   */
+  static async updatePhotoStatusStatic(photoId, status) {
+    const { error } = await supabase
+      .from('photo_uploads')
+      .update({ processing_status: status })
+      .eq('id', photoId);
+
+    if (error) {
+      Logger.error('Update photo status error', { error: error.message });
+    }
+  }
+
+  /**
+   * Process photo asynchronously (deprecated - use queue instead)
+   * @deprecated Use queue service instead
+   */
+  async processPhotoAsync(photoId, userId, imageBuffer) {
+    // This method is deprecated
+    Logger.warn('processPhotoAsync called directly - should use queue service');
+    
+    // Fallback to queue
+    return queueService.addPhotoProcessingJob({
+      photoId,
+      userId,
+      imageBuffer: imageBuffer.toString('base64'),
+      photoType: 'onboarding'
+    });
   }
 
   /**
@@ -276,28 +317,19 @@ Return the analysis in JSON format with the structure:
   "improvement_areas": ["string"]
 }`;
 
-      const result = await models.vision.generateContent([
-        prompt,
-        {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: base64Image
-          }
-        }
-      ]);
-
-      const response = result.response.text();
-      
-      // Parse JSON from response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('Invalid response format from Gemini');
-      }
-
-      const analysis = JSON.parse(jsonMatch[0]);
+      // Use geminiWrapper instead of direct API call
+      const geminiWrapper = require('./geminiWrapper');
+      const result = await geminiWrapper.generateJSON('vision', prompt, {
+        images: [{
+          data: base64Image,
+          mimeType: 'image/jpeg'
+        }],
+        useCache: true,
+        fallbackJSON: this.getDefaultSkinAnalysis()
+      });
 
       // Validate and sanitize the analysis
-      return this.validateSkinAnalysis(analysis);
+      return this.validateSkinAnalysis(result.json);
 
     } catch (error) {
       Logger.error('Gemini skin analysis error', { error: error.message });
